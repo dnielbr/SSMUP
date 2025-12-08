@@ -14,13 +14,18 @@ import com.br.ssmup.repository.EmpresaRepository;
 import com.br.ssmup.repository.LicensaSanitariaRepository;
 import com.br.ssmup.repository.ResponsavelRepository;
 import com.br.ssmup.specifications.EmpresaSpecifications;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class EmpresaService {
@@ -32,8 +37,11 @@ public class EmpresaService {
     private final EnderecoMapper  enderecoMapper;
     private final ResponsavelMapper responsavelMapper;
     private final LicensaSanitariaMapper licensaMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public EmpresaService(EmpresaRepository empresaRepository, ResponsavelRepository responsavelRepository, LicensaSanitariaRepository licensaSanitariaRepository, EmpresaMapper empresaMapper, EnderecoMapper enderecoMapper, ResponsavelMapper responsavelMapper, LicensaSanitariaMapper licensaMapper) {
+
+    public EmpresaService(EmpresaRepository empresaRepository, ResponsavelRepository responsavelRepository, LicensaSanitariaRepository licensaSanitariaRepository, EmpresaMapper empresaMapper, EnderecoMapper enderecoMapper, ResponsavelMapper responsavelMapper, LicensaSanitariaMapper licensaMapper, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
         this.empresaRepository = empresaRepository;
         this.responsavelRepository = responsavelRepository;
         this.licensaSanitariaRepository = licensaSanitariaRepository;
@@ -41,6 +49,8 @@ public class EmpresaService {
         this.enderecoMapper = enderecoMapper;
         this.responsavelMapper = responsavelMapper;
         this.licensaMapper = licensaMapper;
+        this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -83,10 +93,32 @@ public class EmpresaService {
     }
 
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
+        //Chave que vai ser armazenada no Redis
+        String key = "empresas::paged_filter::"
+                + filter.hashCode() + "::"
+                + pageable.getPageNumber() + "::"
+                + pageable.getPageSize() + "::"
+                + pageable.getSort().toString().replace(":", "_");
+
+        Object cache = redisTemplate.opsForValue().get(key);
+
+        if (cache != null) {
+            //Criando um tipo generico para evitar problemas com cast
+            JavaType type = objectMapper.getTypeFactory().constructParametricType(
+                    Page.class, EmpresaResponseDto.class
+            );
+
+            try {
+                return objectMapper.convertValue(cache, type);
+            } catch (IllegalArgumentException e) {
+                redisTemplate.delete(key);
+            }
+        }
 
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
-
-        return empresaRepository.findAll(spec, pageable).map(empresaMapper::toResponse);
+        Page<EmpresaResponseDto> response = empresaRepository.findAll(spec, pageable).map(empresaMapper::toResponse);
+        redisTemplate.opsForValue().set(key, response);
+        return response;
     }
 
 
@@ -111,8 +143,14 @@ public class EmpresaService {
                 .toList();
     }
 
+
     public EmpresaResponseDto getEmpresaById(Long id) {
+        Object cache = redisTemplate.opsForValue().get("EMPRESA_DATA:" + id);
+        if(cache != null){
+            return objectMapper.convertValue(cache, EmpresaResponseDto.class);
+        }
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
+        redisTemplate.opsForValue().set("EMPRESA_DATA:" + id, empresaMapper.toResponse(empresa));
         return empresaMapper.toResponse(empresa);
     }
 

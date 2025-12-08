@@ -1,6 +1,7 @@
 package com.br.ssmup.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
