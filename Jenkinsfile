@@ -6,7 +6,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         // Credencial segura do Jenkins
         GOOGLE_CLIENT_ID = credentials('id-google-secret')
-        DOCKERHUB_REPO = "everaldodaniel123"
+        DOCKERHUB_REPO = "everaldodaniel123/sanimup-api"
     }
 
     stages {
