@@ -35,11 +35,11 @@ pipeline {
                 docker run -d \
                   --name test-api \
                   -e SPRING_PROFILES_ACTIVE=ci \
-                  -p 9999:8080 \
+                  -p 8082:8080 \
                   $IMAGE_NAME:$IMAGE_TAG
 
                 echo "Aguardando aplicação subir..."
-                sleep 10
+                sleep 20
 
                 curl --fail http://localhost:9999/actuator/health
 
