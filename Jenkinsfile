@@ -41,7 +41,7 @@ pipeline {
                 echo "Aguardando aplicação subir..."
                 sleep 20
 
-                curl --fail http://localhost:9999/actuator/health
+                curl --fail http://localhost:8082/actuator/health
 
                 docker rm -f test-api
                 '''
