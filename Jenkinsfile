@@ -86,14 +86,15 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh'''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    
+                    echo "iniando login"
+                    docker login -u "$DOCKER_USER"
+                    $DOCKER_PASS"
                     docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:$IMAGE_TAG
                     docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:latest
                     
                     docker push $DOCKERHUB_REPO:$IMAGE_TAG
                     docker push $DOCKERHUB_REPO:latest
-                    
+                    "echo login terminado"
                     docker logout
                     '''
                 }
