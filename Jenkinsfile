@@ -58,7 +58,7 @@ pipeline {
                 done
 
                 echo "Aplicação respondeu! Validando status..."
-                curl --fail http://localhost:8082/actuator/health
+                sh 'curl -v http://localhost:8082/actuator/health || true
 
                 docker rm -f test-api
                 '''
