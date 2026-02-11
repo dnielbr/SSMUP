@@ -20,8 +20,7 @@ pipeline {
         stage('Build Jar (Maven)') {
             steps {
                 sh 'chmod +x mvnw'
-                // O encoding UTF-8 evita erros com acentos no properties
-                sh './mvnw clean package -DskipTests -Dfile.encoding=UTF-8'
+                sh './mvnw clean package -DskipTests'
             }
         }
 
@@ -34,13 +33,10 @@ pipeline {
         stage('Validate Image') {
             steps {
                 sh '''
-                # 1. Garante que a rede existe
                 docker network create jenkins-test-net || true
 
-                # Limpeza preventiva
                 docker rm -f test-api || true
 
-                # 2. Inicia o container na rede criada
                 echo "Iniciando container da API..."
                 docker run -d \
                   --network jenkins-test-net \
@@ -49,13 +45,11 @@ pipeline {
                   -e GOOGLE_CLIENT_ID="ci-${GOOGLE_CLIENT_ID}" \
                   $IMAGE_NAME:$IMAGE_TAG
 
-                # 3. Loop de verificação (Retry Inteligente)
                 echo "Aguardando aplicação inicializar (Health Check)..."
                 
                 MAX_RETRIES=12  # 12 * 5s = 60 segundos
                 COUNT=0
                 
-                # Enquanto o curl falhar, continua tentando
                 until docker run --network jenkins-test-net --rm curlimages/curl -s -f http://test-api:8080/actuator/health > /dev/null; do
                     if [ $COUNT -ge $MAX_RETRIES ]; then
                         echo "❌ Timeout: A aplicação não respondeu após 60 segundos."
@@ -73,7 +67,6 @@ pipeline {
                 echo "✅ Aplicação respondeu! Validando status final..."
                 docker run --network jenkins-test-net --rm curlimages/curl -s http://test-api:8080/actuator/health
                 
-                # 4. Limpeza final
                 docker rm -f test-api
                 '''
             }
@@ -85,18 +78,21 @@ pipeline {
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh'''
-                    echo "iniando login"
-                    docker login -u "$DOCKER_USER"
-                    $DOCKER_PASS"
-                    docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:$IMAGE_TAG
-                    docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:latest
-                    
-                    docker push $DOCKERHUB_REPO:$IMAGE_TAG
-                    docker push $DOCKERHUB_REPO:latest
-                    "echo login terminado"
+                    sh """
+                    echo "Iniciando login no Docker Hub..."
+    
+                    echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+    
+                    docker tag \$IMAGE_NAME:\$IMAGE_TAG \$DOCKERHUB_REPO:\$IMAGE_TAG
+                    docker tag \$IMAGE_NAME:\$IMAGE_TAG \$DOCKERHUB_REPO:latest
+    
+                    docker push \$DOCKERHUB_REPO:\$IMAGE_TAG
+                    docker push \$DOCKERHUB_REPO:latest
+    
                     docker logout
-                    '''
+    
+                    echo "Login finalizado com sucesso"
+                """
                 }
             }
         }
