@@ -31,35 +31,25 @@ pipeline {
         stage('Validate Image') {
             steps {
                 sh '''
-                docker rm -f test-api || true
-
-                # Inicia o container com a variável GOOGLE_CLIENT_ID FAKE
+                # 1. Cria uma rede para o teste
+                docker network create jenkins-test-net || true
+        
+                # 2. Roda a API nessa rede com um NOME fixo
                 docker run -d \
+                  --network jenkins-test-net \
                   --name test-api \
                   -e SPRING_PROFILES_ACTIVE=ci \
-                  -e GOOGLE_CLIENT_ID=ci-${GOOGLE_CLIENT_ID}  \
-                  -p 8082:8080 \
+                  -e GOOGLE_CLIENT_ID=ci-${GOOGLE_CLIENT_ID} \
                   $IMAGE_NAME:$IMAGE_TAG
-
-                echo "Aguardando aplicação inicializar..."
-
-                # Loop de verificação (Retry)
-                MAX_RETRIES=12
-                COUNT=0
-                until curl -s -f http://localhost:8082/actuator/health > /dev/null; do
-                    if [ $COUNT -ge $MAX_RETRIES ]; then
-                        echo "Timeout: A aplicação não respondeu após 60 segundos."
-                        docker logs test-api
-                        exit 1
-                    fi
-                    echo "Tentativa $((COUNT+1))/$MAX_RETRIES: Aguardando 5s..."
-                    sleep 5
-                    COUNT=$((COUNT+1))
-                done
-
-                echo "Aplicação respondeu! Validando status..."
-                sh 'curl -v http://localhost:8082/actuator/health || true
-
+        
+                # 3. Roda o CURL a partir de OUTRO container na MESMA rede
+                # Isso evita o problema do localhost
+                echo "Aguardando..."
+                sleep 15 
+                
+                docker run --network jenkins-test-net --rm curlimages/curl \
+                  curl -s -f http://test-api:8080/actuator/health
+                
                 docker rm -f test-api
                 '''
             }
