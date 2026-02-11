@@ -44,9 +44,10 @@ services:
   # Spring Boot API
   # ========================================
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: everaldodaniel123/sanimup-api:21
     container_name: ssmup-api
     restart: unless-stopped
     ports:

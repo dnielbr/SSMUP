@@ -17,13 +17,6 @@ pipeline {
             }
         }
 
-//        stage('Build Jar (Maven)') {
-//            steps {
-//                sh 'chmod +x mvnw'
-//                sh './mvnw clean package -DskipTests'
-//            }
-//        }
-
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
