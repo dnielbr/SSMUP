@@ -39,7 +39,7 @@ pipeline {
                   $IMAGE_NAME:$IMAGE_TAG
 
                 echo "Aguardando aplicação subir..."
-                sleep 20
+                sleep 10
 
                 curl --fail http://localhost:9999/actuator/health
 
