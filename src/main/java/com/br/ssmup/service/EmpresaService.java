@@ -11,6 +11,8 @@ import com.br.ssmup.mapper.*;
 import com.br.ssmup.repository.*;
 import com.br.ssmup.specifications.EmpresaSpecifications;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +24,7 @@ import java.util.List;
 @Service
 public class EmpresaService {
 
+    private static final Logger log = LoggerFactory.getLogger(EmpresaService.class);
     private final EmpresaRepository empresaRepository;
     private final ResponsavelRepository responsavelRepository;
     private final LicensaSanitariaRepository licensaSanitariaRepository;
@@ -99,7 +102,6 @@ public class EmpresaService {
 
     //Retirar SPECIFICATIONS
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
-
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
 
         return empresaRepository.findAll(spec, pageable).map(empresaMapper::toResponse);
@@ -302,4 +304,5 @@ public class EmpresaService {
         long qtAlto = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO);
         return new EmpresaRiscoResponseDto(qtBaixo, qtMedio, qtAlto);
     }
+
 }

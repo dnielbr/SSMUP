@@ -2,6 +2,7 @@ package com.br.ssmup.specifications;
 
 import com.br.ssmup.dto.EmpresaFilterDto;
 import com.br.ssmup.entities.Empresa;
+import com.br.ssmup.enums.RiscoSanitario;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -107,6 +108,15 @@ public class EmpresaSpecifications {
         });
     }
 
+    public static Specification<Empresa> byRisco(RiscoSanitario risco) {
+        return ((root, query, builder)->{
+            if(risco!=null){
+                return builder.equal(root.get("cnaePrincipal").get("risco"), risco);
+            }
+            return builder.conjunction();
+        });
+    }
+
     public static Specification<Empresa> buildSpecification(EmpresaFilterDto filter) {
         return EmpresaSpecifications.byId(filter.id())
                 .and(EmpresaSpecifications.byRazaoSocial(filter.razaoSocial()))
@@ -118,6 +128,7 @@ public class EmpresaSpecifications {
                 .and(EmpresaSpecifications.bySubAtividade(filter.subAtividade()))
                 .and(EmpresaSpecifications.byDataInicioFuncionamento(filter.dataInicioFuncionamento()))
                 .and(EmpresaSpecifications.byAtivo(filter.ativo()))
-                .and((EmpresaSpecifications.byInspecao(filter.inspecao())));
+                .and((EmpresaSpecifications.byInspecao(filter.inspecao())))
+                .and((EmpresaSpecifications.byRisco(filter.risco())));
     }
 }
