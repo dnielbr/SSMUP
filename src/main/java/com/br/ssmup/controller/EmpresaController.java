@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -78,6 +77,7 @@ public class EmpresaController {
             @Parameter(name = "sort", description = "Ordenação por atributo", example = "id")}
     )
     public ResponseEntity<Page<EmpresaResponseDto>> getAllEmpresasPageByFilter(@Parameter(hidden = true) @ModelAttribute EmpresaFilterDto filter, @Parameter(hidden = true) Pageable pageable) {
+        log.info("Recebendo requisição de filtro de empresas. Filtros: {}, Página: {}, Size: {}", filter, pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok().body(empresaService.listarEmpresasPageableFilter(filter, pageable));
     }
 
