@@ -100,7 +100,6 @@ public class EmpresaService {
 
     //Retirar SPECIFICATIONS
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
-        log.info("Iniciando busca paginada de empresas com filtros: {}", filter);
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
         return empresaRepository.findAll(spec, pageable).map(empresaMapper::toResponse);
     }

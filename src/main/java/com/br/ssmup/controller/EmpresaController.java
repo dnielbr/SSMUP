@@ -2,12 +2,10 @@ package com.br.ssmup.controller;
 
 import com.br.ssmup.dto.*;
 import com.br.ssmup.service.EmpresaService;
-import com.br.ssmup.specifications.EmpresaSpecifications;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.PastOrPresent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -80,8 +78,6 @@ public class EmpresaController {
             @Parameter(name = "sort", description = "Ordenação por atributo", example = "id")}
     )
     public ResponseEntity<Page<EmpresaResponseDto>> getAllEmpresasPageByFilter(@Parameter(hidden = true) @ModelAttribute EmpresaFilterDto filter, @Parameter(hidden = true) Pageable pageable) {
-        log.info("Recebendo requisição de filtro de empresas. Filtros: {}, Página: {}, Size: {}",
-                filter, pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok().body(empresaService.listarEmpresasPageableFilter(filter, pageable));
     }
 
