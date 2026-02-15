@@ -65,20 +65,6 @@ services:
         condition: service_healthy
     networks:
       - ssmup-network
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: ssmup-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ssmup.com
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
-    ports:
-      - "5050:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - ssmup-network
 volumes:
   postgres_data:
 
