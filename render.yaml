@@ -1,13 +1,10 @@
 services:
-
   # =========================================
   # PostgreSQL (Render Managed Database)
   # =========================================
   - type: pserv
     name: ssmup-postgres
     plan: free
-    databaseName: ssmup
-    user: ssmup
 
   # =========================================
   # Spring Boot API
@@ -19,12 +16,12 @@ services:
     dockerfilePath: ./Dockerfile
     autoDeploy: true
 
+    healthCheckPath: /actuator/health
+
     envVars:
-      # Ativa profile de produção
       - key: SPRING_PROFILES_ACTIVE
         value: prod
 
-      # Conexão automática com o banco criado acima
       - key: SPRING_DATASOURCE_URL
         fromDatabase:
           name: ssmup-postgres
@@ -40,10 +37,8 @@ services:
           name: ssmup-postgres
           property: password
 
-      # Google OAuth
       - key: GOOGLE_CLIENT_ID
         value: 690914641866-so78ac62ua11t47ibur3a0tp9pnjjr3s.apps.googleusercontent.com
 
-      # JWT seguro (gerado automaticamente)
       - key: JWT_SECRET
         generateValue: true
