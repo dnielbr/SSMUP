@@ -3,7 +3,6 @@ package com.br.ssmup.service;
 import com.br.ssmup.dto.*;
 import com.br.ssmup.entities.*;
 import com.br.ssmup.enums.RiscoSanitario;
-import com.br.ssmup.enums.StatusInspecao;
 import com.br.ssmup.enums.TipoSituacao;
 import com.br.ssmup.exceptions.AuthenticationException;
 import com.br.ssmup.exceptions.ResourceNotFoundException;
@@ -11,6 +10,7 @@ import com.br.ssmup.mapper.*;
 import com.br.ssmup.repository.*;
 import com.br.ssmup.specifications.EmpresaSpecifications;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class EmpresaService {
 
@@ -99,9 +100,8 @@ public class EmpresaService {
 
     //Retirar SPECIFICATIONS
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
-
+        log.info("Iniciando busca paginada de empresas com filtros: {}", filter);
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
-
         return empresaRepository.findAll(spec, pageable).map(empresaMapper::toResponse);
     }
 
@@ -302,4 +302,5 @@ public class EmpresaService {
         long qtAlto = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO);
         return new EmpresaRiscoResponseDto(qtBaixo, qtMedio, qtAlto);
     }
+
 }

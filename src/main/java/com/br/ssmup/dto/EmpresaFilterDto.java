@@ -1,5 +1,7 @@
 package com.br.ssmup.dto;
 
+import com.br.ssmup.enums.RiscoSanitario;
+
 import java.time.LocalDate;
 
 public record EmpresaFilterDto(
@@ -13,6 +15,7 @@ public record EmpresaFilterDto(
         String subAtividade,
         LocalDate dataInicioFuncionamento,
         Boolean ativo,
-        Boolean inspecao
+        Boolean inspecao,
+        RiscoSanitario risco
 ) {
 }

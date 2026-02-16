@@ -2,12 +2,11 @@ package com.br.ssmup.controller;
 
 import com.br.ssmup.dto.*;
 import com.br.ssmup.service.EmpresaService;
-import com.br.ssmup.specifications.EmpresaSpecifications;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.PastOrPresent;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,9 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("v1/api/empresas")
 @Tag(name = "Empresas", description = "Ciclo de vida dos estabelecimentos (Cadastro, Inativação, Histórico)")
@@ -72,11 +71,13 @@ public class EmpresaController {
             @Parameter(name = "dataInicioFuncionamento", description = "Filtra por data de inicio de funcionamento"),
             @Parameter(name = "inspecao", description = "Filtra por inspecao feita ou nao feita"),
             @Parameter(name = "ativo", description = "Filtra por status de empresa, ativa ou inativa"),
+            @Parameter(name = "risco", description = "Filtra por risco sanitario, RISCO_I_BAIXO, RISCO_II_MEDIO, RISCO_III_ALTO"),
             @Parameter(name = "page", description = "Número da página (0..N)", example = "0"),
             @Parameter(name = "size", description = "Quantidade de itens por página", example = "10"),
             @Parameter(name = "sort", description = "Ordenação por atributo", example = "id")}
     )
     public ResponseEntity<Page<EmpresaResponseDto>> getAllEmpresasPageByFilter(@Parameter(hidden = true) @ModelAttribute EmpresaFilterDto filter, @Parameter(hidden = true) Pageable pageable) {
+        log.info("Recebendo requisição de filtro de empresas. Filtros: {}, Página: {}, Size: {}", filter, pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok().body(empresaService.listarEmpresasPageableFilter(filter, pageable));
     }
 
