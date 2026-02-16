@@ -1,21 +1,14 @@
-services:
-  # =========================================
-  # PostgreSQL (Render Managed Database)
-  # =========================================
-  - type: pserv
-    name: ssmup-postgres
+databases:
+  - name: ssmup-postgres
     plan: free
 
-  # =========================================
-  # Spring Boot API
-  # =========================================
+services:
   - type: web
     name: ssmup-api
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile
     autoDeploy: true
-
     healthCheckPath: /actuator/health
 
     envVars:
