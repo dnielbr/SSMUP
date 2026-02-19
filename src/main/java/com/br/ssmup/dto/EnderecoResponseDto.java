@@ -2,6 +2,8 @@ package com.br.ssmup.dto;
 
 import com.br.ssmup.enums.UnidadeFederativa;
 
+import java.io.Serializable;
+
 public record EnderecoResponseDto(
         Long id,
         String rua,
@@ -11,5 +13,5 @@ public record EnderecoResponseDto(
         String municipio,
         UnidadeFederativa uf,
         String telefone
-) {
+) implements Serializable {
 }

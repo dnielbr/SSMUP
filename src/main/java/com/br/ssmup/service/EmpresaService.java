@@ -11,6 +11,9 @@ import com.br.ssmup.repository.*;
 import com.br.ssmup.specifications.EmpresaSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,7 +37,7 @@ public class EmpresaService {
     private final UsuarioRepository usuarioRepository;
     private final HistoricoSitucaoRepository  historicoSitucaoRepository;
     private final HistoricoSituacaoMapper historicoSituacaoMapper;
-
+    private final String CACHE_NAME = "empresas";
 
     public EmpresaService(EmpresaRepository empresaRepository, ResponsavelRepository responsavelRepository, LicensaSanitariaRepository licensaSanitariaRepository, EmpresaMapper empresaMapper, EnderecoMapper enderecoMapper, ResponsavelMapper responsavelMapper, LicensaSanitariaMapper licensaMapper, CnaeRepository cnaeRepository, UsuarioRepository usuarioRepository, HistoricoSitucaoRepository historicoSitucaoRepository, HistoricoSituacaoMapper historicoSituacaoMapper) {
         this.empresaRepository = empresaRepository;
@@ -50,6 +53,7 @@ public class EmpresaService {
         this.historicoSituacaoMapper = historicoSituacaoMapper;
     }
 
+    @CachePut(cacheNames = CACHE_NAME, key = "#result.id")
     @Transactional
     public EmpresaResponseDto saveEmpresa(EmpresaCadastroDto dto) {
         Empresa empresa = empresaMapper.toEntity(dto);
@@ -70,11 +74,14 @@ public class EmpresaService {
         return empresaMapper.toResponse(empresaRepository.save(empresa));
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public LicensaSanitariaResponseDto saveLicensaSanitaria(Long id, LicensaSanitariaCadastroDto dto) {
-        Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new  ResourceNotFoundException("Empresa não encontrada"));
+        Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Empresa não encontrada"));
+
         LicensaSanitaria licensaSanitaria = licensaMapper.toEntity(dto);
         licensaSanitaria.setEmpresa(empresa);
+
         return licensaMapper.toResponse(licensaSanitariaRepository.save(licensaSanitaria));
     }
 
@@ -84,7 +91,9 @@ public class EmpresaService {
                 .toList();
     }
 
+    @Cacheable(cacheNames = CACHE_NAME + "_pageable")
     public Page<EmpresaResponseDto> listarEmpresasPageable(Pageable pageable) {
+        log.info("Iniciando busca na lista paginada de emrpresas.");
         return empresaRepository.findAll(pageable).map(empresaMapper::toResponse);
     }
 
@@ -99,6 +108,7 @@ public class EmpresaService {
     }
 
     //Retirar SPECIFICATIONS
+    @Cacheable(cacheNames = CACHE_NAME + "_pageableFilter")
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
         log.info("Iniciando busca paginada de empresas com filtros: {}", filter);
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
@@ -127,11 +137,18 @@ public class EmpresaService {
                 .toList();
     }
 
+    @Cacheable(cacheNames = CACHE_NAME, key = "#id")
     public EmpresaResponseDto getEmpresaById(Long id) {
-        Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
+        log.info("Buscando empresa com id: {}", id);
+        Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> {
+            log.error("Empresa não encontrada com id: {}", id);
+            return new ResourceNotFoundException("Empresa não encontrada");
+        });
+        log.info("Sucesso em buscar empresa com id: {}", id);
         return empresaMapper.toResponse(empresa);
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public void  deleteByIdEmpresa(Long id) {
         if(!empresaRepository.existsById(id)) {
@@ -140,6 +157,7 @@ public class EmpresaService {
         empresaRepository.deleteById(id);
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public void inativarEmpresa(Long id, HistoricoSituacaoRequestDto motivo) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
@@ -148,6 +166,7 @@ public class EmpresaService {
         gravarHistoricoSituacao(motivo.motivo(), empresa, TipoSituacao.INATIVACAO);
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public void ativarEmpresa(Long id) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() ->  new ResourceNotFoundException("Empresa não encontrada"));
@@ -162,6 +181,7 @@ public class EmpresaService {
 //        empresaRepository.save(empresa);
 //    }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public EmpresaAtualizarDto atualizarEmpresa(Long id, EmpresaAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
@@ -197,6 +217,7 @@ public class EmpresaService {
         return empresaMapper.toUpdate( empresaRepository.save(empresa));
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public EnderecoResponseDto atualizarEndereco(Long id, EnderecoAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Empresa nao encontrada"));
@@ -234,6 +255,7 @@ public class EmpresaService {
         return enderecoMapper.toResponse(empresa.getEndereco());
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public ResponsavelResponseDto atualizarResponsavel(Long id, ResponsavelAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Empresa nao encontrada"));
@@ -295,6 +317,7 @@ public class EmpresaService {
                 .map(historicoSituacaoMapper::toDto)
                 .toList();
     }
+
 
     public EmpresaRiscoResponseDto buscarQtEmpresasRisco(){
         long qtBaixo = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_I_BAIXO);

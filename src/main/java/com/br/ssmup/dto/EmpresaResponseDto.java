@@ -2,6 +2,7 @@ package com.br.ssmup.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 public record EmpresaResponseDto(
@@ -20,5 +21,5 @@ public record EmpresaResponseDto(
         EnderecoResponseDto endereco,
         ResponsavelResponseDto responsavel,
         CnaeResponseDto cnae
-) {
+) implements Serializable {
 }
