@@ -188,4 +188,23 @@ public class EmpresaController {
     public ResponseEntity<EmpresaRiscoResponseDto> getQtEmpresaRisco(){
         return ResponseEntity.ok(empresaService.buscarQtEmpresasRisco());
     }
+
+    @GetMapping("/buscaAproximada")
+    @Operation(summary = "Busca Aproximada (Solr)", description = "Busca inteligente com tolerância a erros de digitação.")
+    public ResponseEntity<Page<EmpresaResponseDto>> buscarAproximada(
+            @RequestParam("termo") String termo,
+            @Parameter(hidden = true)
+            @PageableDefault(page = 0, size = 10) Pageable pageable
+    ) {
+        if(termo == null || termo.isBlank()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(empresaService.buscarEmpresasPorText(termo, pageable));
+    }
+
+    @PostMapping("/sincronizarSolr")
+    public ResponseEntity<String> sincronizarBaseSolr() {
+        empresaService.sincronizarBaseComSolr();
+        return ResponseEntity.ok("Sincronização iniciada com sucesso! Verifique os logs.");
+    }
 }

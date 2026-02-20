@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -49,6 +51,13 @@ public class InspecaoRelatorioService {
                 .toList();
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = "empresas", key = "#inspecaoRelatorioRequestDto.empresaId()"),
+                    @CacheEvict(cacheNames = "empresas_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = "empresas_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public InspecaoRelatorioResponseDto salvarInspecaoRelatorio(InspecaoRelatorioRequestDto inspecaoRelatorioRequestDto) {
 
