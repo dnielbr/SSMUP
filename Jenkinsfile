@@ -27,40 +27,76 @@ pipeline {
             steps {
                 sh '''
                 docker network create jenkins-test-net || true
-
-                docker rm -f test-api || true
-
-                echo "Iniciando container da API..."
+        
+                # ============================
+                # Limpa containers antigos
+                # ============================
+                docker rm -f test-api test-redis test-solr || true
+        
+                # ============================
+                # Subindo Redis
+                # ============================
+                echo "Subindo Redis..."
+                docker run -d \
+                  --network jenkins-test-net \
+                  --name test-redis \
+                  redis:7-alpine
+        
+                # ============================
+                # Subindo Solr
+                # ============================
+                echo "Subindo Solr..."
+                docker run -d \
+                  --network jenkins-test-net \
+                  --name test-solr \
+                  solr:9.4 solr-precreate empresas
+        
+                echo "Aguardando Solr iniciar..."
+                sleep 15
+        
+                # ============================
+                # Subindo API
+                # ============================
+                echo "Subindo API..."
                 docker run -d \
                   --network jenkins-test-net \
                   --name test-api \
                   -e SPRING_PROFILES_ACTIVE=ci \
+                  -e SPRING_REDIS_HOST=test-redis \
+                  -e SPRING_REDIS_PORT=6379 \
+                  -e SPRING_DATA_SOLR_HOST=http://test-solr:8983/solr \
+                  -e SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb \
                   -e GOOGLE_CLIENT_ID="ci-${GOOGLE_CLIENT_ID}" \
                   $IMAGE_NAME:$IMAGE_TAG
-
+        
                 echo "Aguardando aplicação inicializar (Health Check)..."
                 
-                MAX_RETRIES=12  # 12 * 5s = 60 segundos
+                MAX_RETRIES=12
                 COUNT=0
                 
                 until docker run --network jenkins-test-net --rm curlimages/curl -s -f http://test-api:8080/actuator/health > /dev/null; do
                     if [ $COUNT -ge $MAX_RETRIES ]; then
-                        echo "❌ Timeout: A aplicação não respondeu após 60 segundos."
-                        echo "--- LOGS DO CONTAINER ---"
+                        echo "❌ Timeout: aplicação não respondeu."
+                        echo "--- LOGS API ---"
                         docker logs test-api
-                        docker rm -f test-api
+                        echo "--- LOGS SOLR ---"
+                        docker logs test-solr
+                        echo "--- LOGS REDIS ---"
+                        docker logs test-redis
+                        docker rm -f test-api test-solr test-redis
                         exit 1
                     fi
                     
-                    echo "Tentativa $((COUNT+1))/$MAX_RETRIES: Aguardando 5s..."
+                    echo "Tentativa $((COUNT+1))/$MAX_RETRIES..."
                     sleep 5
                     COUNT=$((COUNT+1))
                 done
-
-                echo "✅ Aplicação respondeu! Validando status final..."
+        
+                echo "✅ Aplicação respondeu!"
                 docker run --network jenkins-test-net --rm curlimages/curl -s http://test-api:8080/actuator/health
-                
-                docker rm -f test-api
+        
+                # Cleanup
+                docker rm -f test-api test-solr test-redis
                 '''
             }
         }
