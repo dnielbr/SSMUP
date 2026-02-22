@@ -1,5 +1,7 @@
 package com.br.ssmup.dto;
 
+import java.io.Serializable;
+
 public record ResponsavelResponseDto(
     Long id,
     String nome,
@@ -9,5 +11,5 @@ public record ResponsavelResponseDto(
     String formacao,
     String especializacao,
     String registroConselho
-) {
+) implements Serializable {
 }

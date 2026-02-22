@@ -14,24 +14,24 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("v1/api")
 public class GeradorPdfContoller {
 
-//    private final GeradorPdfService geradorPdfService;
-//    private final LicensaSanitariaService licencaService;
-//    private final EmpresaService empresaService;
-//
-//    public GeradorPdfContoller(GeradorPdfService geradorPdfService, LicensaSanitariaService licencaService, EmpresaService empresaService) {
-//        this.geradorPdfService = geradorPdfService;
-//        this.licencaService = licencaService;
-//        this.empresaService = empresaService;
-//    }
-//
-//    @GetMapping("/licenca/pdf")
-//    public ResponseEntity<byte[]> getlicensaPdf(@RequestParam String numControl, @RequestParam Long idEmpresa){
-//        LicensaSanitariaResponseDto licenca = licencaService.buscarLicencaSanitariaByNumControle(numControl);
-//        EmpresaResponseDto empresa = empresaService.getEmpresaById(idEmpresa);
-//        byte[] pdfBytes = geradorPdfService.gerarLicensaSanitariaPdf(empresa,licenca);
-//        return ResponseEntity.ok()
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=relatorio.pdf")
-//                .contentType(MediaType.APPLICATION_PDF)
-//                .body(pdfBytes);
-//    }
+    private final GeradorPdfService geradorPdfService;
+    private final LicensaSanitariaService licencaService;
+    private final EmpresaService empresaService;
+
+    public GeradorPdfContoller(GeradorPdfService geradorPdfService, LicensaSanitariaService licencaService, EmpresaService empresaService) {
+        this.geradorPdfService = geradorPdfService;
+        this.licencaService = licencaService;
+        this.empresaService = empresaService;
+    }
+
+    @GetMapping("/licenca/pdf")
+    public ResponseEntity<byte[]> getlicensaPdf(@RequestParam String numControl, @RequestParam Long idEmpresa){
+        LicensaSanitariaResponseDto licenca = licencaService.buscarLicencaSanitariaByNumControle(numControl);
+        EmpresaResponseDto empresa = empresaService.getEmpresaById(idEmpresa);
+        byte[] pdfBytes = geradorPdfService.gerarLicensaSanitariaPdf(empresa,licenca);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=relatorio.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
 }

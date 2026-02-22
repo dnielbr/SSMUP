@@ -2,11 +2,11 @@ package com.br.ssmup.controller;
 
 import com.br.ssmup.dto.*;
 import com.br.ssmup.service.EmpresaService;
-import com.br.ssmup.specifications.EmpresaSpecifications;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,9 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("v1/api/empresas")
 @Tag(name = "Empresas", description = "Ciclo de vida dos estabelecimentos (Cadastro, Inativação, Histórico)")
@@ -69,12 +69,15 @@ public class EmpresaController {
             @Parameter(name = "atividadeFirma", description = "Filtra por atividade da firma"),
             @Parameter(name = "subAtividade", description = "Filtra por sub atividade da firma"),
             @Parameter(name = "dataInicioFuncionamento", description = "Filtra por data de inicio de funcionamento"),
-            @Parameter(name = "ativo", description = "Filtra por status de empresa, ativa ou inativa", example = "true"),
+            @Parameter(name = "inspecao", description = "Filtra por inspecao feita ou nao feita"),
+            @Parameter(name = "ativo", description = "Filtra por status de empresa, ativa ou inativa"),
+            @Parameter(name = "risco", description = "Filtra por risco sanitario, RISCO_I_BAIXO, RISCO_II_MEDIO, RISCO_III_ALTO"),
             @Parameter(name = "page", description = "Número da página (0..N)", example = "0"),
             @Parameter(name = "size", description = "Quantidade de itens por página", example = "10"),
             @Parameter(name = "sort", description = "Ordenação por atributo", example = "id")}
     )
     public ResponseEntity<Page<EmpresaResponseDto>> getAllEmpresasPageByFilter(@Parameter(hidden = true) @ModelAttribute EmpresaFilterDto filter, @Parameter(hidden = true) Pageable pageable) {
+        log.info("Recebendo requisição de filtro de empresas. Filtros: {}, Página: {}, Size: {}", filter, pageable.getPageNumber(), pageable.getPageSize());
         return ResponseEntity.ok().body(empresaService.listarEmpresasPageableFilter(filter, pageable));
     }
 
@@ -95,7 +98,7 @@ public class EmpresaController {
     //Buscar empresa por ID
     @GetMapping({"{id}"})
     @Operation(summary = "Detalhes da Empresa", description = "Busca uma empresa específica por ID.")
-    public ResponseEntity<EmpresaResponseStatusDto> getEmpresas(@PathVariable Long id) {
+    public ResponseEntity<EmpresaResponseDto> getEmpresas(@PathVariable Long id) {
         return ResponseEntity.ok().body(empresaService.getEmpresaById(id));
     }
 
@@ -135,18 +138,18 @@ public class EmpresaController {
     }
 
     //Inativar empresa por ID
-    @DeleteMapping("{id}/inativar")
+    @PatchMapping("{id}/inativar")
     @Operation(summary = "Inativar Empresa", description = "Realiza a exclusão lógica e registra o motivo no histórico.")
     public ResponseEntity<Void> inativarEmpresa(@PathVariable Long id, @RequestBody HistoricoSituacaoRequestDto payload){
-        empresaService.inativarEmpresa(id, payload.motivo());
+        empresaService.inativarEmpresa(id, payload);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //Ativar empresa por ID
     @PutMapping ("{id}/ativar")
     @Operation(summary = "Reativar Empresa", description = "Restaura o acesso da empresa e registra no histórico.")
-    public ResponseEntity<Void> ativarEmpresa(@PathVariable Long id, @RequestBody HistoricoSituacaoRequestDto payload){
-        empresaService.ativarEmpresa(id, payload.motivo());
+    public ResponseEntity<Void> ativarEmpresa(@PathVariable Long id){
+        empresaService.ativarEmpresa(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -177,5 +180,31 @@ public class EmpresaController {
     @Operation(summary = "Consultar Histórico", description = "Linha do tempo de ativações e inativações da empresa.")
     public ResponseEntity<List<HistoricoSituacaoResponseDto>> getAllHistorico(@PathVariable Long id){
         return ResponseEntity.ok().body(empresaService.listarHistoricoSituacao(id));
+    }
+
+    //Listar quantidades de empresas por risco, baixo, medio e alto
+    @GetMapping("risco")
+    @Operation(summary = "Consultar quantidades de empresas por risco", description = "Retorna um Json(DTO), contendo as quantidades de empresas de baixo, medio e alto risco")
+    public ResponseEntity<EmpresaRiscoResponseDto> getQtEmpresaRisco(){
+        return ResponseEntity.ok(empresaService.buscarQtEmpresasRisco());
+    }
+
+    @GetMapping("/buscaAproximada")
+    @Operation(summary = "Busca Aproximada (Solr)", description = "Busca inteligente com tolerância a erros de digitação.")
+    public ResponseEntity<Page<EmpresaResponseDto>> buscarAproximada(
+            @RequestParam("termo") String termo,
+            @Parameter(hidden = true)
+            @PageableDefault(page = 0, size = 10) Pageable pageable
+    ) {
+        if(termo == null || termo.isBlank()){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(empresaService.buscarEmpresasPorText(termo, pageable));
+    }
+
+    @PostMapping("/sincronizarSolr")
+    public ResponseEntity<String> sincronizarBaseSolr() {
+        empresaService.sincronizarBaseComSolr();
+        return ResponseEntity.ok("Sincronização iniciada com sucesso! Verifique os logs.");
     }
 }

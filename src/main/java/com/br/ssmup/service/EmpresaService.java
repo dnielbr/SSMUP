@@ -2,7 +2,7 @@ package com.br.ssmup.service;
 
 import com.br.ssmup.dto.*;
 import com.br.ssmup.entities.*;
-import com.br.ssmup.enums.StatusInspecao;
+import com.br.ssmup.enums.RiscoSanitario;
 import com.br.ssmup.enums.TipoSituacao;
 import com.br.ssmup.exceptions.AuthenticationException;
 import com.br.ssmup.exceptions.ResourceNotFoundException;
@@ -10,14 +10,24 @@ import com.br.ssmup.mapper.*;
 import com.br.ssmup.repository.*;
 import com.br.ssmup.specifications.EmpresaSpecifications;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EmpresaService {
 
@@ -32,10 +42,10 @@ public class EmpresaService {
     private final UsuarioRepository usuarioRepository;
     private final HistoricoSitucaoRepository  historicoSitucaoRepository;
     private final HistoricoSituacaoMapper historicoSituacaoMapper;
-    private final InspecaoRelatorioRepository inspecaoRelatorioRepository;
+    private final EmpresaSolrService empresaSolrService;
+    private final String CACHE_NAME = "empresas";
 
-
-    public EmpresaService(EmpresaRepository empresaRepository, ResponsavelRepository responsavelRepository, LicensaSanitariaRepository licensaSanitariaRepository, EmpresaMapper empresaMapper, EnderecoMapper enderecoMapper, ResponsavelMapper responsavelMapper, LicensaSanitariaMapper licensaMapper, CnaeRepository cnaeRepository, UsuarioRepository usuarioRepository, HistoricoSitucaoRepository historicoSitucaoRepository, HistoricoSituacaoMapper historicoSituacaoMapper, InspecaoRelatorioRepository inspecaoRelatorioRepository) {
+    public EmpresaService(EmpresaRepository empresaRepository, ResponsavelRepository responsavelRepository, LicensaSanitariaRepository licensaSanitariaRepository, EmpresaMapper empresaMapper, EnderecoMapper enderecoMapper, ResponsavelMapper responsavelMapper, LicensaSanitariaMapper licensaMapper, CnaeRepository cnaeRepository, UsuarioRepository usuarioRepository, HistoricoSitucaoRepository historicoSitucaoRepository, HistoricoSituacaoMapper historicoSituacaoMapper, EmpresaSolrService empresaSolrService) {
         this.empresaRepository = empresaRepository;
         this.responsavelRepository = responsavelRepository;
         this.licensaSanitariaRepository = licensaSanitariaRepository;
@@ -47,34 +57,51 @@ public class EmpresaService {
         this.usuarioRepository = usuarioRepository;
         this.historicoSitucaoRepository = historicoSitucaoRepository;
         this.historicoSituacaoMapper = historicoSituacaoMapper;
-        this.inspecaoRelatorioRepository = inspecaoRelatorioRepository;
+        this.empresaSolrService = empresaSolrService;
     }
 
+    @Caching(
+            put = {
+                    @CachePut(cacheNames = CACHE_NAME, key = "#result.id")
+            },
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public EmpresaResponseDto saveEmpresa(EmpresaCadastroDto dto) {
         Empresa empresa = empresaMapper.toEntity(dto);
 
         if(dto.cnaeCodigo() != null){
             Cnae cnae = cnaeRepository.findByCodigo(dto.cnaeCodigo()).orElseThrow(() -> new RuntimeException("CNAE não encontrado: " + dto.cnaeCodigo()));
-            System.out.println(cnae.getRisco());
             empresa.setCnaePrincipal(cnae);
         }
 
         Responsavel responsavel = responsavelRepository.findByCpf(empresa.getResponsavel().getCpf()).orElse(null);
         if(responsavel == null){
             responsavelRepository.save(empresa.getResponsavel());
-            return empresaMapper.toResponse(empresaRepository.save(empresa));
+            Empresa responseEmpresa = empresaRepository.save(empresa);
+            log.info("Empresa Salvo com sucesso!");
+            empresaSolrService.salvarNoSolr(responseEmpresa);
+            return empresaMapper.toResponse(responseEmpresa);
         }
         empresa.setResponsavel(responsavel);
 
-        return empresaMapper.toResponse(empresaRepository.save(empresa));
+        Empresa responseEmpresa = empresaRepository.save(empresa);
+        log.info("Empresa Salvo com sucesso!");
+        empresaSolrService.salvarNoSolr(responseEmpresa);
+        return empresaMapper.toResponse(responseEmpresa);
     }
 
+    @CacheEvict(cacheNames = CACHE_NAME, key = "#id")
     @Transactional
     public LicensaSanitariaResponseDto saveLicensaSanitaria(Long id, LicensaSanitariaCadastroDto dto) {
-        Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new  ResourceNotFoundException("Empresa não encontrada"));
+        Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Empresa não encontrada"));
+
         LicensaSanitaria licensaSanitaria = licensaMapper.toEntity(dto);
         licensaSanitaria.setEmpresa(empresa);
+
         return licensaMapper.toResponse(licensaSanitariaRepository.save(licensaSanitaria));
     }
 
@@ -84,7 +111,9 @@ public class EmpresaService {
                 .toList();
     }
 
+    @Cacheable(cacheNames = CACHE_NAME + "_pageable")
     public Page<EmpresaResponseDto> listarEmpresasPageable(Pageable pageable) {
+        log.info("Iniciando busca na lista paginada de emrpresas.");
         return empresaRepository.findAll(pageable).map(empresaMapper::toResponse);
     }
 
@@ -99,10 +128,10 @@ public class EmpresaService {
     }
 
     //Retirar SPECIFICATIONS
+    @Cacheable(cacheNames = CACHE_NAME + "_pageableFilter")
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
-
+        log.info("Iniciando busca paginada de empresas com filtros: {}", filter);
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
-
         return empresaRepository.findAll(spec, pageable).map(empresaMapper::toResponse);
     }
 
@@ -128,39 +157,60 @@ public class EmpresaService {
                 .toList();
     }
 
-    public EmpresaResponseStatusDto getEmpresaById(Long id) {
-        Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
-        StatusInspecao status = inspecaoRelatorioRepository.findTopByEmpresaIdOrderByCreatedAtDesc(id).orElse(null).getStatusInspecao();
-        if(status == null){
-            status = StatusInspecao.PENDENTE;
-        }
-        EmpresaResponseDto empresaResponseDto = empresaMapper.toResponse(empresa);
-
-        return new EmpresaResponseStatusDto(empresaResponseDto, status);
+    @Cacheable(cacheNames = CACHE_NAME, key = "#id")
+    public EmpresaResponseDto getEmpresaById(Long id) {
+        log.info("Buscando empresa com id: {}", id);
+        Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> {
+            log.error("Empresa não encontrada com id: {}", id);
+            return new ResourceNotFoundException("Empresa não encontrada");
+        });
+        log.info("Sucesso em buscar empresa com id: {}", id);
+        return empresaMapper.toResponse(empresa);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME, key = "#id"),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public void  deleteByIdEmpresa(Long id) {
         if(!empresaRepository.existsById(id)) {
             throw new ResourceNotFoundException("Empresa não encontrada");
         }
         empresaRepository.deleteById(id);
+        empresaSolrService.removerDoSolr(id);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME, key = "#id"),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
-    public void inativarEmpresa(Long id, String motivo) {
+    public void inativarEmpresa(Long id, HistoricoSituacaoRequestDto motivo) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
         empresa.setAtivo(false);
         empresaRepository.save(empresa);
-        gravarHistoricoSituacao(motivo, empresa, TipoSituacao.INATIVACAO);
+        gravarHistoricoSituacao(motivo.motivo(), empresa, TipoSituacao.INATIVACAO);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME, key = "#id"),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
-    public void ativarEmpresa(Long id, String motivo) {
+    public void ativarEmpresa(Long id) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() ->  new ResourceNotFoundException("Empresa não encontrada"));
         empresa.setAtivo(true);
         empresaRepository.save(empresa);
-        gravarHistoricoSituacao(motivo, empresa, TipoSituacao.ATIVACAO);
     }
 
 //    @Transactional
@@ -170,6 +220,13 @@ public class EmpresaService {
 //        empresaRepository.save(empresa);
 //    }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME, key = "#id"),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public EmpresaAtualizarDto atualizarEmpresa(Long id, EmpresaAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
@@ -202,9 +259,19 @@ public class EmpresaService {
             empresa.setDataInicioFuncionamento(dto.dataInicioFuncionamento());
         }
 
-        return empresaMapper.toUpdate( empresaRepository.save(empresa));
+        Empresa empresaSalva = empresaRepository.save(empresa);
+        log.info("Empresa atualizada com sucesso");
+        empresaSolrService.salvarNoSolr(empresaSalva);
+        return empresaMapper.toUpdate(empresaSalva);
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME, key = "#id"),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public EnderecoResponseDto atualizarEndereco(Long id, EnderecoAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Empresa nao encontrada"));
@@ -242,6 +309,13 @@ public class EmpresaService {
         return enderecoMapper.toResponse(empresa.getEndereco());
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CACHE_NAME, key = "#id"),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = CACHE_NAME + "_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public ResponsavelResponseDto atualizarResponsavel(Long id, ResponsavelAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Empresa nao encontrada"));
@@ -302,5 +376,46 @@ public class EmpresaService {
         return historicoSituacaoList.stream()
                 .map(historicoSituacaoMapper::toDto)
                 .toList();
+    }
+
+
+    public EmpresaRiscoResponseDto buscarQtEmpresasRisco(){
+        long qtBaixo = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_I_BAIXO);
+        long qtMedio = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_II_MEDIO);
+        long qtAlto = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO);
+        return new EmpresaRiscoResponseDto(qtBaixo, qtMedio, qtAlto);
+    }
+
+    public Page<EmpresaResponseDto> buscarEmpresasPorText(String termo, Pageable pageable){
+        log.info("Iniciando busca aproximada pelo termo: {}", termo);
+
+        Page<EmpresaSolrDto> pageSolr = empresaSolrService.buscarAproximada(termo, pageable);
+        if(pageSolr.isEmpty()) return Page.empty(pageable);
+
+        List<Long> ids = pageSolr.getContent().stream()
+                .map(doc -> Long.valueOf(doc.getId()))
+                .toList();
+
+        List<Empresa> empresasDesordenadas = empresaRepository.findAllById(ids);
+
+        Map<Long, Empresa> empresaMap = empresasDesordenadas.stream()
+                .collect(Collectors.toMap(Empresa::getId, e -> e));
+
+        List<EmpresaResponseDto> empresasOrdenadas = ids.stream()
+                .map(empresaMap::get)
+                .filter(Objects::nonNull)
+                .map(empresaMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(empresasOrdenadas, pageable, pageSolr.getTotalElements());
+    }
+
+    public void sincronizarBaseComSolr(){
+        log.info("Extraindo dados do PostgreSQL/MySQL para o Apache Solr...");
+        List<Empresa> todasEmpresas = empresaRepository.findAll();
+        List<EmpresaSolrDto> documentos = todasEmpresas.stream()
+                .map(emp -> new EmpresaSolrDto(emp.getId().toString(), emp.getRazaoSocial(), emp.getNomeFantasia()))
+                .toList();
+        empresaSolrService.sincronizarEmLote(documentos);
     }
 }

@@ -12,13 +12,11 @@ import com.br.ssmup.mapper.InspecaoRelatorioMapper;
 import com.br.ssmup.repository.EmpresaRepository;
 import com.br.ssmup.repository.InspecaoRelatorioRepository;
 import com.br.ssmup.repository.UsuarioRepository;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -49,14 +47,20 @@ public class InspecaoRelatorioService {
                 .toList();
     }
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = "empresas", key = "#inspecaoRelatorioRequestDto.empresaId()"),
+                    @CacheEvict(cacheNames = "empresas_pageable", allEntries = true),
+                    @CacheEvict(cacheNames = "empresas_pageableFilter", allEntries = true)
+            }
+    )
     @Transactional
     public InspecaoRelatorioResponseDto salvarInspecaoRelatorio(InspecaoRelatorioRequestDto inspecaoRelatorioRequestDto) {
-
-        Empresa empresa = empresaRepository.findById(inspecaoRelatorioRequestDto.empresaId()).orElseThrow(()-> new ResourceNotFoundException("Empresa com id: " + inspecaoRelatorioRequestDto.empresaId() + " não encontrada"));
+        Empresa empresa = empresaRepository.findById(inspecaoRelatorioRequestDto.empresaId()).orElseThrow(() -> new ResourceNotFoundException("Empresa com id: " + inspecaoRelatorioRequestDto.empresaId() + " não encontrada"));
 
         if(inspecaoRelatorioRequestDto.statusInspecao().equals(StatusInspecao.APROVADA)){
             empresa.setInspecao(true);
-            empresaRepository.save(empresa);
+            empresa = empresaRepository.save(empresa);
         }
         List<Usuario> usuarios = usuarioRepository.findAllById(inspecaoRelatorioRequestDto.usuariosId());
 

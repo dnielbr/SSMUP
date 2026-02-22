@@ -41,6 +41,7 @@ public class SecurityConfig {
                     req.requestMatchers(HttpMethod.POST, "/v1/api/auth/google").permitAll();
                     req.requestMatchers("/actuator/health").permitAll();
                     req.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
+                    req.requestMatchers("v1/api/usuarios/filter").hasAnyRole("ADMIN", "USER");
                     req.requestMatchers("v1/api/usuarios/**").hasRole("ADMIN");
                     req.anyRequest().authenticated();
                 })
