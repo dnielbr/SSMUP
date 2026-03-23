@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -12,6 +16,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "tb_empresas")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Empresa {
 
     @Id
@@ -71,146 +79,6 @@ public class Empresa {
     @JoinColumn(name = "cnae_principal_codigo")
     private Cnae cnaePrincipal;
 
-    public Empresa() {
-    }
-
-    public Empresa(String razaoSocial, Long id, String nomeFantasia, String cnpj, String inscricaoEstadual, String atividadeFirma, String subAtividade, LocalDate dataInicioFuncionamento, String email, Responsavel responsavel, Endereco endereco, List<LicensaSanitaria> licensasSanitarias, Localizacao localizacao,  Cnae cnaePrincipal) {
-        this.razaoSocial = razaoSocial;
-        this.id = id;
-        this.nomeFantasia = nomeFantasia;
-        this.cnpj = cnpj;
-        this.inscricaoEstadual = inscricaoEstadual;
-        this.atividadeFirma = atividadeFirma;
-        this.cnaePrincipal = cnaePrincipal;
-        this.subAtividade = subAtividade;
-        this.dataInicioFuncionamento = dataInicioFuncionamento;
-        this.email = email;
-        this.responsavel = responsavel;
-        this.endereco = endereco;
-        this.licensasSanitarias = licensasSanitarias;
-        this.localizacao = localizacao;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getRazaoSocial() {
-        return razaoSocial;
-    }
-
-    public void setRazaoSocial(String razaoSocial) {
-        this.razaoSocial = razaoSocial;
-    }
-
-    public String getNomeFantasia() {
-        return nomeFantasia;
-    }
-
-    public void setNomeFantasia(String nomeFantasia) {
-        this.nomeFantasia = nomeFantasia;
-    }
-
-    public String getCnpj() {
-        return cnpj;
-    }
-
-    public void setCnpj(String cnpj) {
-        this.cnpj = cnpj;
-    }
-
-    public String getInscricaoEstadual() {
-        return inscricaoEstadual;
-    }
-
-    public void setInscricaoEstadual(String inscricaoEstadual) {
-        this.inscricaoEstadual = inscricaoEstadual;
-    }
-
-    public String getAtividadeFirma() {
-        return atividadeFirma;
-    }
-
-    public void setAtividadeFirma(String atividadeFirma) {
-        this.atividadeFirma = atividadeFirma;
-    }
-
-    public String getSubAtividade() {
-        return subAtividade;
-    }
-
-    public void setSubAtividade(String subAtividade) {
-        this.subAtividade = subAtividade;
-    }
-
-    public LocalDate getDataInicioFuncionamento() {
-        return dataInicioFuncionamento;
-    }
-
-    public void setDataInicioFuncionamento(LocalDate dataInicioFuncionamento) {
-        this.dataInicioFuncionamento = dataInicioFuncionamento;
-    }
-
-    public boolean isAtivo() {
-        return ativo;
-    }
-
-    public void setAtivo(boolean ativo) {
-        this.ativo = ativo;
-    }
-
-    public boolean isInspecao() {
-        return inspecao;
-    }
-
-    public void setInspecao(boolean inspecao) {
-        this.inspecao = inspecao;
-    }
-
-    public Responsavel getResponsavel() {
-        return responsavel;
-    }
-
-    public void setResponsavel(Responsavel responsavel) {
-        this.responsavel = responsavel;
-    }
-
-    public Endereco getEndereco() {
-        return endereco;
-    }
-
-    public void setEndereco(Endereco endereco) {
-        this.endereco = endereco;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public List<LicensaSanitaria> getLicensasSanitarias() {
-        return licensasSanitarias;
-    }
-
-    public void setLicensasSanitarias(List<LicensaSanitaria> licensasSanitarias) {
-        this.licensasSanitarias = licensasSanitarias;
-    }
-
-    public Localizacao getLocalizacao() {
-        return localizacao;
-    }
-
-    public void setLocalizacao(Localizacao localizacao) {
-        this.localizacao = localizacao;
-    }
-
     public void adicionarEndereco(Endereco endereco) {
         this.endereco = endereco;
         if (endereco != null) {
@@ -218,11 +86,4 @@ public class Empresa {
         }
     }
 
-    public Cnae getCnaePrincipal() {
-        return cnaePrincipal;
-    }
-
-    public void setCnaePrincipal(Cnae cnaePrincipal) {
-        this.cnaePrincipal = cnaePrincipal;
-    }
 }
