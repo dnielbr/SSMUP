@@ -50,6 +50,9 @@ public class AuthService {
 
     @Transactional
     public AuthResponse refreshToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new UnauthorizedException("Refresh token ausente.");
+        }
         log.info("Tentando atualizar token access via refresh token");
         var refreshToken = refreshTokenService.findByToken(token);
         refreshTokenService.verifyExpiration(refreshToken);

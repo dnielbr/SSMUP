@@ -34,23 +34,15 @@ public class AuthController {
     @Operation(summary = "Login com Google", description = "Autentica o usuário validando o token do Google e retorna um JWT da aplicação.")
     public ResponseEntity<AuthResponse> loginGoogle(@Valid @RequestBody GoogleLoginRequest request, HttpServletResponse response) {
         AuthResponse authResponse = authService.loginGoogle(request.token());
-        
         addRefreshTokenCookie(response, authResponse.refreshToken());
-        
         return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh Token", description = "Gera um novo access token e um novo refresh token a partir de um refresh token válido.")
     public ResponseEntity<AuthResponse> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
-        if (refreshToken == null) {
-            throw new com.br.ssmup.core.exception.UnauthorizedException("Refresh token ausente.");
-        }
-        
         AuthResponse authResponse = authService.refreshToken(refreshToken);
-        
         addRefreshTokenCookie(response, authResponse.refreshToken());
-        
         return ResponseEntity.ok(authResponse);
     }
 

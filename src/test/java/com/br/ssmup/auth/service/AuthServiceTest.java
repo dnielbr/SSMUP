@@ -57,7 +57,7 @@ class AuthServiceTest {
 
         com.br.ssmup.auth.dto.AuthResponse result = authService.loginGoogle("google-token-123");
 
-        assertThat(result.token()).isEqualTo("jwt-token");
+        assertThat(result.accessToken()).isEqualTo("jwt-token");
         assertThat(result.refreshToken()).isEqualTo("refresh-token-123");
         verify(googleTokenVerifier).verify("google-token-123");
         verify(refreshTokenService).createRefreshToken(usuario);
@@ -83,7 +83,7 @@ class AuthServiceTest {
 
         com.br.ssmup.auth.dto.AuthResponse result = authService.refreshToken("old-refresh-token");
 
-        assertThat(result.token()).isEqualTo("new-jwt-token");
+        assertThat(result.accessToken()).isEqualTo("new-jwt-token");
         assertThat(result.refreshToken()).isEqualTo("new-refresh-token");
         verify(refreshTokenService).verifyExpiration(oldRefreshToken);
     }
