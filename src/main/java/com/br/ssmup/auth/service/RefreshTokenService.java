@@ -24,9 +24,6 @@ public class RefreshTokenService {
     }
 
     public RefreshToken createRefreshToken(Usuario usuario) {
-        // Exclui tokens anteriores para esse usuário (uma sessão por usuário, ou ajuste conforme necessário)
-        // Para aplicações grandes, pode-se permitir múltiplos tokens (múltiplos dispositivos)
-        // Aqui seguiremos a regra de um por usuário para simplicidade, mas com suporte a rotação.
         refreshTokenRepository.deleteByUsuario(usuario);
 
         RefreshToken refreshToken = RefreshToken.builder()
@@ -40,11 +37,16 @@ public class RefreshTokenService {
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
-        if (token.getExpiryDate().isBefore(Instant.now())) {
+        if (token.getExpiryDate().isBefore(Instant.now()) || token.isRevoked()) {
             refreshTokenRepository.delete(token);
-            throw new UnauthorizedException("Refresh token expirado. Por favor, faça login novamente.");
+            throw new UnauthorizedException("Refresh token inválido ou expirado. Por favor, faça login novamente.");
         }
         return token;
+    }
+
+    @Transactional
+    public void delete(RefreshToken token) {
+        refreshTokenRepository.delete(token);
     }
 
     @Transactional

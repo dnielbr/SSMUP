@@ -20,7 +20,6 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final TokenService tokenService;
     private final GoogleTokenVerifier googleTokenVerifier;
-
     private final RefreshTokenService refreshTokenService;
 
     public AuthService(UsuarioRepository usuarioRepository, TokenService tokenService, GoogleTokenVerifier googleTokenVerifier, RefreshTokenService refreshTokenService) {
@@ -56,6 +55,9 @@ public class AuthService {
         refreshTokenService.verifyExpiration(refreshToken);
 
         Usuario usuario = refreshToken.getUsuario();
+        
+        // Deletar o token antigo (Rotação)
+        refreshTokenService.delete(refreshToken);
         
         var newRefreshToken = refreshTokenService.createRefreshToken(usuario);
         String newAccessToken = tokenService.gerarToken(usuario);

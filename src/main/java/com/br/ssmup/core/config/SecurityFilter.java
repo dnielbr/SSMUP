@@ -38,16 +38,22 @@ public class SecurityFilter extends OncePerRequestFilter {
 
                 String role = claims.get("role", String.class);
 
+                List<SimpleGrantedAuthority> authorities = role != null
+                        ? List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        : List.of();
+
                 var auth = new UsernamePasswordAuthenticationToken(
                         claims.getSubject(),
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        authorities
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-            } catch (Exception ignored) {
-                System.out.println("Erro ao validar token no filtro: " + ignored.getMessage());
+            } catch (Exception ex) {
+                logger.error("Erro ao validar token no filtro: " + ex.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
         }
 
