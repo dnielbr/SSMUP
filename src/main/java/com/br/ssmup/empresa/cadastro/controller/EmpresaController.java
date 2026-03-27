@@ -79,9 +79,7 @@ public class EmpresaController {
             @Parameter(name = "atividadeFirma", description = "Filtra por atividade da firma"),
             @Parameter(name = "subAtividade", description = "Filtra por sub atividade da firma"),
             @Parameter(name = "dataInicioFuncionamento", description = "Filtra por data de inicio de funcionamento"),
-            @Parameter(name = "inspecao", description = "Filtra por inspecao feita ou nao feita"),
             @Parameter(name = "ativo", description = "Filtra por status de empresa, ativa ou inativa"),
-            @Parameter(name = "risco", description = "Filtra por risco sanitario, RISCO_I_BAIXO, RISCO_II_MEDIO, RISCO_III_ALTO"),
             @Parameter(name = "page", description = "Número da página (0..N)", example = "0"),
             @Parameter(name = "size", description = "Quantidade de itens por página", example = "10"),
             @Parameter(name = "sort", description = "Ordenação por atributo", example = "id")}
@@ -172,11 +170,11 @@ public class EmpresaController {
         return ResponseEntity.ok().body(historicoSituacaoService.listarHistoricoSituacao(id));
     }
 
-    @GetMapping("risco")
-    @Operation(summary = "Consultar quantidades de empresas por risco", description = "Retorna um Json(DTO), contendo as quantidades de empresas de baixo, medio e alto risco")
-    public ResponseEntity<EmpresaRiscoResponseDto> getQtEmpresaRisco() {
-        return ResponseEntity.ok(empresaService.buscarQtEmpresasRisco());
-    }
+//    @GetMapping("risco")
+//    @Operation(summary = "Consultar quantidades de empresas por risco", description = "Retorna um Json(DTO), contendo as quantidades de empresas de baixo, medio e alto risco")
+//    public ResponseEntity<EmpresaRiscoResponseDto> getQtEmpresaRisco() {
+//        return ResponseEntity.ok(empresaService.buscarQtEmpresasRisco());
+//    }
 
     @GetMapping("/buscaAproximada")
     @Operation(summary = "Busca Aproximada (Solr)", description = "Busca inteligente com tolerância a erros de digitação.")

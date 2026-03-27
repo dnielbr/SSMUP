@@ -54,30 +54,30 @@ public class InspecaoRelatorioService {
                     @CacheEvict(cacheNames = "empresas_pageableFilter", allEntries = true)
             }
     )
-    @Transactional
-    public InspecaoRelatorioResponseDto salvarInspecaoRelatorio(InspecaoRelatorioRequestDto inspecaoRelatorioRequestDto) {
-        Empresa empresa = empresaRepository.findById(inspecaoRelatorioRequestDto.empresaId()).orElseThrow(() -> new ResourceNotFoundException("Empresa com id: " + inspecaoRelatorioRequestDto.empresaId() + " não encontrada"));
-
-        if(inspecaoRelatorioRequestDto.statusInspecao().equals(StatusInspecao.APROVADA)){
-            empresa.setInspecao(true);
-            empresa = empresaRepository.save(empresa);
-        }
-        List<Usuario> usuarios = usuarioRepository.findAllById(inspecaoRelatorioRequestDto.usuariosId());
-
-        if(usuarios.isEmpty()){
-            throw new RuntimeException("Pelo menos um id de usuario deve ser fornecido");
-        }
-
-        InspecaoRelatorio inspecaoRelatorio = new InspecaoRelatorio();
-        inspecaoRelatorio.setObjetivoInspecao(inspecaoRelatorioRequestDto.objetivoInspecao());
-        inspecaoRelatorio.setObservacoes(inspecaoRelatorioRequestDto.observacoes());
-        inspecaoRelatorio.setDataInspecao(inspecaoRelatorioRequestDto.dataInspecao());
-        inspecaoRelatorio.setStatusInspecao(inspecaoRelatorioRequestDto.statusInspecao());
-        inspecaoRelatorio.setEmpresa(empresa);
-        inspecaoRelatorio.setUsuarios(usuarios);
-
-        return inspecaoRelatorioMapper.toDto(inspecaoRelatorioRepository.save(inspecaoRelatorio));
-    }
+//    @Transactional
+//    public InspecaoRelatorioResponseDto salvarInspecaoRelatorio(InspecaoRelatorioRequestDto inspecaoRelatorioRequestDto) {
+//        Empresa empresa = empresaRepository.findById(inspecaoRelatorioRequestDto.empresaId()).orElseThrow(() -> new ResourceNotFoundException("Empresa com id: " + inspecaoRelatorioRequestDto.empresaId() + " não encontrada"));
+//
+//        if(inspecaoRelatorioRequestDto.statusInspecao().equals(StatusInspecao.APROVADA)){
+//            empresa.setInspecao(true);
+//            empresa = empresaRepository.save(empresa);
+//        }
+//        List<Usuario> usuarios = usuarioRepository.findAllById(inspecaoRelatorioRequestDto.usuariosId());
+//
+//        if(usuarios.isEmpty()){
+//            throw new RuntimeException("Pelo menos um id de usuario deve ser fornecido");
+//        }
+//
+//        InspecaoRelatorio inspecaoRelatorio = new InspecaoRelatorio();
+//        inspecaoRelatorio.setObjetivoInspecao(inspecaoRelatorioRequestDto.objetivoInspecao());
+//        inspecaoRelatorio.setObservacoes(inspecaoRelatorioRequestDto.observacoes());
+//        inspecaoRelatorio.setDataInspecao(inspecaoRelatorioRequestDto.dataInspecao());
+//        inspecaoRelatorio.setStatusInspecao(inspecaoRelatorioRequestDto.statusInspecao());
+//        inspecaoRelatorio.setEmpresa(empresa);
+//        inspecaoRelatorio.setUsuarios(usuarios);
+//
+//        return inspecaoRelatorioMapper.toDto(inspecaoRelatorioRepository.save(inspecaoRelatorio));
+//    }
 
     @Transactional
     public InspecaoRelatorioResponseDto atualizarInspecaoRelatorio(Long id, InspecaoRelatorioUpdateDto dto){

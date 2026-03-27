@@ -84,51 +84,51 @@ class LicensaSanitariaServiceTest {
         assertThat(licensa.getEmpresa()).isEqualTo(empresa);
     }
 
-    @Test
-    @DisplayName("Deve emitir alvará para empresa de baixo risco")
-    void deveEmitirAlvara() {
-        Empresa empresa = new Empresa();
-        empresa.setId(1L);
-        Cnae cnae = new Cnae();
-        cnae.setRisco(RiscoSanitario.RISCO_I_BAIXO);
-        empresa.setCnaePrincipal(cnae);
+//    @Test
+//    @DisplayName("Deve emitir alvará para empresa de baixo risco")
+//    void deveEmitirAlvara() {
+//        Empresa empresa = new Empresa();
+//        empresa.setId(1L);
+//        Cnae cnae = new Cnae();
+//        cnae.setRisco(RiscoSanitario.RISCO_I_BAIXO);
+//        empresa.setCnaePrincipal(cnae);
+//
+//        LicensaSanitaria licensa = new LicensaSanitaria();
+//        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+//        when(licensaSanitariaRepository.findFirstByEmpresaIdAndStatusTrue(1L)).thenReturn(Optional.of(licensa));
+//        when(empresaMapper.toResponse(empresa)).thenReturn(mock(EmpresaResponseDto.class));
+//        when(licensaSanitariaMapper.toResponse(licensa)).thenReturn(mock(LicensaSanitariaResponseDto.class));
+//        when(geradorPdfService.gerarLicensaSanitariaPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
+//
+//        byte[] result = licensaSanitariaService.emitirAlvara(1L);
+//
+//        assertThat(result).isNotEmpty();
+//    }
 
-        LicensaSanitaria licensa = new LicensaSanitaria();
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
-        when(licensaSanitariaRepository.findFirstByEmpresaIdAndStatusTrue(1L)).thenReturn(Optional.of(licensa));
-        when(empresaMapper.toResponse(empresa)).thenReturn(mock(EmpresaResponseDto.class));
-        when(licensaSanitariaMapper.toResponse(licensa)).thenReturn(mock(LicensaSanitariaResponseDto.class));
-        when(geradorPdfService.gerarLicensaSanitariaPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
+//    @Test
+//    @DisplayName("Deve lançar exceção para empresa sem CNAE")
+//    void deveLancarExcecaoSemCnae() {
+//        Empresa empresa = new Empresa();
+//        empresa.setCnaePrincipal(null);
+//
+//        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+//
+//        assertThatThrownBy(() -> licensaSanitariaService.emitirAlvara(1L))
+//                .isInstanceOf(BusinessRuleException.class);
+//    }
 
-        byte[] result = licensaSanitariaService.emitirAlvara(1L);
-
-        assertThat(result).isNotEmpty();
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção para empresa sem CNAE")
-    void deveLancarExcecaoSemCnae() {
-        Empresa empresa = new Empresa();
-        empresa.setCnaePrincipal(null);
-
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
-
-        assertThatThrownBy(() -> licensaSanitariaService.emitirAlvara(1L))
-                .isInstanceOf(BusinessRuleException.class);
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção para alto risco sem inspeção")
-    void deveLancarExcecaoAltoRiscoSemInspecao() {
-        Empresa empresa = new Empresa();
-        Cnae cnae = new Cnae();
-        cnae.setRisco(RiscoSanitario.RISCO_III_ALTO);
-        empresa.setCnaePrincipal(cnae);
-        empresa.setInspecao(false);
-
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
-
-        assertThatThrownBy(() -> licensaSanitariaService.emitirAlvara(1L))
-                .isInstanceOf(HighRiskInspectionException.class);
-    }
+//    @Test
+//    @DisplayName("Deve lançar exceção para alto risco sem inspeção")
+//    void deveLancarExcecaoAltoRiscoSemInspecao() {
+//        Empresa empresa = new Empresa();
+//        Cnae cnae = new Cnae();
+//        cnae.setRisco(RiscoSanitario.RISCO_III_ALTO);
+//        empresa.setCnaePrincipal(cnae);
+//        empresa.setInspecao(false);
+//
+//        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+//
+//        assertThatThrownBy(() -> licensaSanitariaService.emitirAlvara(1L))
+//                .isInstanceOf(HighRiskInspectionException.class);
+//    }
 }

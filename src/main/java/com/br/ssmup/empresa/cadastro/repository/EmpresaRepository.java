@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface EmpresaRepository extends JpaRepository<Empresa, Long>, JpaSpecificationExecutor<Empresa> {
-    long countByCnaePrincipalRisco(RiscoSanitario risco);
+//    long countByCnaePrincipalRisco(RiscoSanitario risco);
     List<Empresa> findByAtivo(boolean ativo);
 }

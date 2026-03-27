@@ -20,9 +20,9 @@ public record EmpresaResponseDto(
         @JsonFormat(pattern = "dd/MM/yyyy")
         LocalDate dataInicioFuncionamento,
         boolean ativo,
-        boolean inspecao,
+//        boolean inspecao,
         EnderecoResponseDto endereco,
-        ResponsavelResponseDto responsavel,
-        CnaeResponseDto cnae
+        ResponsavelResponseDto responsavel
+//        CnaeResponseDto cnae
 ) implements Serializable {
 }

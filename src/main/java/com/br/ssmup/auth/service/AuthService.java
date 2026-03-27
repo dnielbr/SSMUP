@@ -44,25 +44,30 @@ public class AuthService {
         log.info("Login sucesso com email: {}, gerando tokens JWT!", email);
         String accessToken = tokenService.gerarToken(usuario);
         var refreshToken = refreshTokenService.createRefreshToken(usuario);
-
+        System.out.println("REFRESH TOKEN ATUAL: " + refreshToken.getToken());
         return new AuthResponse(accessToken, refreshToken.getToken(), "Bearer", tokenService.getExpiration());
     }
 
     @Transactional
     public AuthResponse refreshToken(String token) {
+
         if (token == null || token.isBlank()) {
             throw new UnauthorizedException("Refresh token ausente.");
         }
-        log.info("Tentando atualizar token access via refresh token");
+
+        log.info("Buscando o refresh token do banco");
         var refreshToken = refreshTokenService.findByToken(token);
+
+        log.info("Validando a expiração do token e se foi revogado");
         refreshTokenService.verifyExpiration(refreshToken);
 
         Usuario usuario = refreshToken.getUsuario();
-        
-        // Deletar o token antigo (Rotação)
-        refreshTokenService.delete(refreshToken);
-        
+
+        log.info("Revogando refresh token");
+        refreshTokenService.revoke(refreshToken);
+
         var newRefreshToken = refreshTokenService.createRefreshToken(usuario);
+
         String newAccessToken = tokenService.gerarToken(usuario);
 
         log.info("Token access atualizado com sucesso via refresh token para o usuario: {}", usuario.getEmail());

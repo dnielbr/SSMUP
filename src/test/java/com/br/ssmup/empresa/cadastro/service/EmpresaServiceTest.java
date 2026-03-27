@@ -213,17 +213,17 @@ class EmpresaServiceTest {
         verify(empresaRepository).findByAtivo(true);
     }
 
-    @Test
-    @DisplayName("Deve buscar contagem de empresas por risco")
-    void deveBuscarQtEmpresasRisco() {
-        when(empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_I_BAIXO)).thenReturn(5L);
-        when(empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_II_MEDIO)).thenReturn(3L);
-        when(empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO)).thenReturn(2L);
-
-        EmpresaRiscoResponseDto result = empresaService.buscarQtEmpresasRisco();
-
-        assertThat(result.qtEmpresasBaixoRisco()).isEqualTo(5);
-        assertThat(result.qtEmpresasRiscoMedio()).isEqualTo(3);
-        assertThat(result.qtEmpresasRiscoAlto()).isEqualTo(2);
-    }
+//    @Test
+//    @DisplayName("Deve buscar contagem de empresas por risco")
+//    void deveBuscarQtEmpresasRisco() {
+//        when(empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_I_BAIXO)).thenReturn(5L);
+//        when(empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_II_MEDIO)).thenReturn(3L);
+//        when(empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO)).thenReturn(2L);
+//
+//        EmpresaRiscoResponseDto result = empresaService.buscarQtEmpresasRisco();
+//
+//        assertThat(result.qtEmpresasBaixoRisco()).isEqualTo(5);
+//        assertThat(result.qtEmpresasRiscoMedio()).isEqualTo(3);
+//        assertThat(result.qtEmpresasRiscoAlto()).isEqualTo(2);
+//    }
 }

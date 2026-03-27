@@ -61,43 +61,43 @@ class InspecaoRelatorioServiceTest {
         assertThat(result).hasSize(1);
     }
 
-    @Test
-    @DisplayName("Deve salvar relatório de inspeção e atualizar status da empresa se aprovada")
-    void deveSalvarInspecaoEAprovarEmpresa() {
-        InspecaoRelatorioRequestDto dto = mock(InspecaoRelatorioRequestDto.class);
-        Empresa empresa = new Empresa();
-        empresa.setInspecao(false);
+//    @Test
+//    @DisplayName("Deve salvar relatório de inspeção e atualizar status da empresa se aprovada")
+//    void deveSalvarInspecaoEAprovarEmpresa() {
+//        InspecaoRelatorioRequestDto dto = mock(InspecaoRelatorioRequestDto.class);
+//        Empresa empresa = new Empresa();
+//        empresa.setInspecao(false);
+//
+//        when(dto.empresaId()).thenReturn(1L);
+//        when(dto.statusInspecao()).thenReturn(StatusInspecao.APROVADA);
+//        when(dto.usuariosId()).thenReturn(List.of(1L));
+//        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+//        when(empresaRepository.save(any(Empresa.class))).thenReturn(empresa);
+//        when(usuarioRepository.findAllById(anyList())).thenReturn(List.of(new Usuario()));
+//        when(inspecaoRelatorioRepository.save(any(InspecaoRelatorio.class))).thenReturn(new InspecaoRelatorio());
+//        when(inspecaoRelatorioMapper.toDto(any())).thenReturn(mock(InspecaoRelatorioResponseDto.class));
+//
+//        inspecaoRelatorioService.salvarInspecaoRelatorio(dto);
+//
+//        assertThat(empresa.isInspecao()).isTrue();
+//        verify(empresaRepository).save(empresa);
+//        verify(inspecaoRelatorioRepository).save(any(InspecaoRelatorio.class));
+//    }
 
-        when(dto.empresaId()).thenReturn(1L);
-        when(dto.statusInspecao()).thenReturn(StatusInspecao.APROVADA);
-        when(dto.usuariosId()).thenReturn(List.of(1L));
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
-        when(empresaRepository.save(any(Empresa.class))).thenReturn(empresa);
-        when(usuarioRepository.findAllById(anyList())).thenReturn(List.of(new Usuario()));
-        when(inspecaoRelatorioRepository.save(any(InspecaoRelatorio.class))).thenReturn(new InspecaoRelatorio());
-        when(inspecaoRelatorioMapper.toDto(any())).thenReturn(mock(InspecaoRelatorioResponseDto.class));
-
-        inspecaoRelatorioService.salvarInspecaoRelatorio(dto);
-
-        assertThat(empresa.isInspecao()).isTrue();
-        verify(empresaRepository).save(empresa);
-        verify(inspecaoRelatorioRepository).save(any(InspecaoRelatorio.class));
-    }
-
-    @Test
-    @DisplayName("Deve lançar exceção ao salvar relatório sem usuários")
-    void deveLancarExcecaoSemUsuarios() {
-        InspecaoRelatorioRequestDto dto = mock(InspecaoRelatorioRequestDto.class);
-        when(dto.empresaId()).thenReturn(1L);
-        when(dto.statusInspecao()).thenReturn(StatusInspecao.APROVADA);
-        when(dto.usuariosId()).thenReturn(Collections.emptyList());
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(new Empresa()));
-        when(usuarioRepository.findAllById(anyList())).thenReturn(Collections.emptyList());
-
-        assertThatThrownBy(() -> inspecaoRelatorioService.salvarInspecaoRelatorio(dto))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Pelo menos um id de usuario deve ser fornecido");
-    }
+//    @Test
+//    @DisplayName("Deve lançar exceção ao salvar relatório sem usuários")
+//    void deveLancarExcecaoSemUsuarios() {
+//        InspecaoRelatorioRequestDto dto = mock(InspecaoRelatorioRequestDto.class);
+//        when(dto.empresaId()).thenReturn(1L);
+//        when(dto.statusInspecao()).thenReturn(StatusInspecao.APROVADA);
+//        when(dto.usuariosId()).thenReturn(Collections.emptyList());
+//        when(empresaRepository.findById(1L)).thenReturn(Optional.of(new Empresa()));
+//        when(usuarioRepository.findAllById(anyList())).thenReturn(Collections.emptyList());
+//
+//        assertThatThrownBy(() -> inspecaoRelatorioService.salvarInspecaoRelatorio(dto))
+//                .isInstanceOf(RuntimeException.class)
+//                .hasMessage("Pelo menos um id de usuario deve ser fornecido");
+//    }
 
     @Test
     @DisplayName("Deve atualizar relatório de inspeção usando mapper")

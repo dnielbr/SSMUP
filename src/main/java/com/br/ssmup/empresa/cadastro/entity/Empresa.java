@@ -55,11 +55,11 @@ public class Empresa {
     @Column(nullable = false)
     private boolean ativo = true;
 
-    @Column(nullable = false)
-    private boolean inspecao = false;
+//    @Column(nullable = false)
+//    private boolean inspecao = false;
 
     @Email
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -79,9 +79,9 @@ public class Empresa {
     @JsonManagedReference
     private Localizacao localizacao;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cnae_principal_codigo")
-    private Cnae cnaePrincipal;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "cnae_principal_codigo")
+//    private Cnae cnaePrincipal;
 
     public void adicionarEndereco(Endereco endereco) {
         this.endereco = endereco;

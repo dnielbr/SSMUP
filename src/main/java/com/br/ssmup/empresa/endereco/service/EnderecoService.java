@@ -24,8 +24,6 @@ public class EnderecoService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = EMPRESAS, key = "#empresaId"),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE, allEntries = true),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE_FILTER, allEntries = true)
     })
     @Transactional
     public EnderecoResponseDto atualizarEndereco(Long empresaId, EnderecoAtualizarDto dto) {

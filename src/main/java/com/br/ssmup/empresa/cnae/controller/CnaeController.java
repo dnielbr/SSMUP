@@ -19,21 +19,21 @@ public class CnaeController {
         this.cnaeService = cnaeService;
     }
 
-    @GetMapping
-    public List<Cnae> listar(@RequestParam(required = false) String busca) {
-        if (busca != null && !busca.isBlank()) {
-            return cnaeRepository.buscarPorCodigoOuDescricao(busca);
-        }
-        return cnaeRepository.findAll();
-    }
-
-    @PostMapping("/popular")
-    public ResponseEntity<String> popularBanco() {
-        try {
-            String mensagem = cnaeService.popularBancoDeDados();
-            return ResponseEntity.ok(mensagem);
-        } catch (RuntimeException e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
+//    @GetMapping
+//    public List<Cnae> listar(@RequestParam(required = false) String busca) {
+//        if (busca != null && !busca.isBlank()) {
+//            return cnaeRepository.buscarPorCodigoOuDescricao(busca);
+//        }
+//        return cnaeRepository.findAll();
+//    }
+//
+//    @PostMapping("/popular")
+//    public ResponseEntity<String> popularBanco() {
+//        try {
+//            String mensagem = cnaeService.popularBancoDeDados();
+//            return ResponseEntity.ok(mensagem);
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.internalServerError().body(e.getMessage());
+//        }
+//    }
 }

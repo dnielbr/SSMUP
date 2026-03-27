@@ -99,23 +99,23 @@ public class EmpresaSpecifications {
         });
     }
 
-    public static Specification<Empresa> byInspecao(Boolean inspecao) {
-        return ((root, query, builder) -> {
-            if(inspecao!=null){
-                return builder.equal(root.get("inspecao"), inspecao);
-            }
-            return builder.conjunction();
-        });
-    }
+//    public static Specification<Empresa> byInspecao(Boolean inspecao) {
+//        return ((root, query, builder) -> {
+//            if(inspecao!=null){
+//                return builder.equal(root.get("inspecao"), inspecao);
+//            }
+//            return builder.conjunction();
+//        });
+//    }
 
-    public static Specification<Empresa> byRisco(RiscoSanitario risco) {
-        return ((root, query, builder)->{
-            if(risco!=null){
-                return builder.equal(root.get("cnaePrincipal").get("risco"), risco);
-            }
-            return builder.conjunction();
-        });
-    }
+//    public static Specification<Empresa> byRisco(RiscoSanitario risco) {
+//        return ((root, query, builder)->{
+//            if(risco!=null){
+//                return builder.equal(root.get("cnaePrincipal").get("risco"), risco);
+//            }
+//            return builder.conjunction();
+//        });
+//    }
 
     public static Specification<Empresa> buildSpecification(EmpresaFilterDto filter) {
         return EmpresaSpecifications.byId(filter.id())
@@ -127,8 +127,8 @@ public class EmpresaSpecifications {
                 .and(EmpresaSpecifications.byAtividadeFirma(filter.atividadeFirma()))
                 .and(EmpresaSpecifications.bySubAtividade(filter.subAtividade()))
                 .and(EmpresaSpecifications.byDataInicioFuncionamento(filter.dataInicioFuncionamento()))
-                .and(EmpresaSpecifications.byAtivo(filter.ativo()))
-                .and((EmpresaSpecifications.byInspecao(filter.inspecao())))
-                .and((EmpresaSpecifications.byRisco(filter.risco())));
+                .and(EmpresaSpecifications.byAtivo(filter.ativo()));
+//                .and((EmpresaSpecifications.byInspecao(filter.inspecao())))
+//                .and((EmpresaSpecifications.byRisco(filter.risco())));
     }
 }

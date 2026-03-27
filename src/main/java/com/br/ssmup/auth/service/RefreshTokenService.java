@@ -23,8 +23,8 @@ public class RefreshTokenService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
+    @Transactional
     public RefreshToken createRefreshToken(Usuario usuario) {
-        refreshTokenRepository.deleteByUsuario(usuario);
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .usuario(usuario)
@@ -38,15 +38,15 @@ public class RefreshTokenService {
 
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().isBefore(Instant.now()) || token.isRevoked()) {
-            refreshTokenRepository.delete(token);
             throw new UnauthorizedException("Refresh token inválido ou expirado. Por favor, faça login novamente.");
         }
         return token;
     }
 
     @Transactional
-    public void delete(RefreshToken token) {
-        refreshTokenRepository.delete(token);
+    public void revoke(RefreshToken token) {
+        token.setRevoked(true);
+        refreshTokenRepository.save(token);
     }
 
     @Transactional

@@ -77,17 +77,17 @@ public class LicensaSanitariaService {
         Empresa empresa = empresaRepository.findById(idEmpresa)
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada"));
 
-        if (empresa.getCnaePrincipal() == null) {
-            throw new BusinessRuleException("Empresa sem CNAE vinculado. Atualize o cadastro.");
-        }
-
-        RiscoSanitario riscoSanitario = empresa.getCnaePrincipal().getRisco();
-
-        if (riscoSanitario == RiscoSanitario.RISCO_III_ALTO) {
-            if (!empresa.isInspecao()) {
-                throw new HighRiskInspectionException("Empresa classificada como ALTO RISCO. Necessária inspeção prévia.");
-            }
-        }
+//        if (empresa.getCnaePrincipal() == null) {
+//            throw new BusinessRuleException("Empresa sem CNAE vinculado. Atualize o cadastro.");
+//        }
+//
+//        RiscoSanitario riscoSanitario = empresa.getCnaePrincipal().getRisco();
+//
+//        if (riscoSanitario == RiscoSanitario.RISCO_III_ALTO) {
+//            if (!empresa.isInspecao()) {
+//                throw new HighRiskInspectionException("Empresa classificada como ALTO RISCO. Necessária inspeção prévia.");
+//            }
+//        }
 
         LicensaSanitaria licensaParaImprimir = licensaSanitariaRepository
                 .findFirstByEmpresaIdAndStatusTrue(idEmpresa)

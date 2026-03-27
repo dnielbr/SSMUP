@@ -43,26 +43,20 @@ public class EmpresaService {
     private final EmpresaRepository empresaRepository;
     private final ResponsavelRepository responsavelRepository;
     private final EmpresaMapper empresaMapper;
-    private final CnaeRepository cnaeRepository;
+//    private final CnaeRepository cnaeRepository;
     private final EmpresaSolrService empresaSolrService;
     private final HistoricoSituacaoService historicoSituacaoService;
 
-    @Caching(
-            put = {@CachePut(cacheNames = EMPRESAS, key = "#result.id")},
-            evict = {
-                    @CacheEvict(cacheNames = EMPRESAS_PAGEABLE, allEntries = true),
-                    @CacheEvict(cacheNames = EMPRESAS_PAGEABLE_FILTER, allEntries = true)
-            }
-    )
+    @Caching(put = {@CachePut(cacheNames = EMPRESAS, key = "#result.id")})
     @Transactional
     public EmpresaResponseDto saveEmpresa(EmpresaCadastroDto dto) {
         Empresa empresa = empresaMapper.toEntity(dto);
 
-        if (dto.cnaeCodigo() != null) {
-            Cnae cnae = cnaeRepository.findByCodigo(dto.cnaeCodigo())
-                    .orElseThrow(() -> new RuntimeException("CNAE não encontrado: " + dto.cnaeCodigo()));
-            empresa.setCnaePrincipal(cnae);
-        }
+//        if (dto.cnaeCodigo() != null) {
+//            Cnae cnae = cnaeRepository.findByCodigo(dto.cnaeCodigo())
+//                    .orElseThrow(() -> new RuntimeException("CNAE não encontrado: " + dto.cnaeCodigo()));
+//            empresa.setCnaePrincipal(cnae);
+//        }
 
         Responsavel responsavel = responsavelRepository.findByCpf(empresa.getResponsavel().getCpf()).orElse(null);
         if (responsavel == null) {
@@ -83,7 +77,7 @@ public class EmpresaService {
                 .toList();
     }
 
-    @Cacheable(cacheNames = EMPRESAS_PAGEABLE)
+//    @Cacheable(cacheNames = EMPRESAS_PAGEABLE)
     public Page<EmpresaResponseDto> listarEmpresasPageable(Pageable pageable) {
         log.info("Iniciando busca na lista paginada de empresas.");
         return empresaRepository.findAll(pageable).map(empresaMapper::toResponse);
@@ -96,7 +90,7 @@ public class EmpresaService {
                 .toList();
     }
 
-    @Cacheable(cacheNames = EMPRESAS_PAGEABLE_FILTER)
+//    @Cacheable(cacheNames = EMPRESAS_PAGEABLE_FILTER)
     public Page<EmpresaResponseDto> listarEmpresasPageableFilter(EmpresaFilterDto filter, Pageable pageable) {
         log.info("Iniciando busca paginada de empresas com filtros: {}", filter);
         Specification<Empresa> spec = EmpresaSpecifications.buildSpecification(filter);
@@ -125,11 +119,7 @@ public class EmpresaService {
         return empresaMapper.toResponse(empresa);
     }
 
-    @Caching(evict = {
-            @CacheEvict(cacheNames = EMPRESAS, key = "#id"),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE, allEntries = true),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE_FILTER, allEntries = true)
-    })
+    @Caching(evict = {@CacheEvict(cacheNames = EMPRESAS, key = "#id")})
     @Transactional
     public void deleteByIdEmpresa(Long id) {
         if (!empresaRepository.existsById(id)) {
@@ -139,11 +129,7 @@ public class EmpresaService {
         empresaSolrService.removerDoSolr(id);
     }
 
-    @Caching(evict = {
-            @CacheEvict(cacheNames = EMPRESAS, key = "#id"),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE, allEntries = true),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE_FILTER, allEntries = true)
-    })
+    @Caching(evict = {@CacheEvict(cacheNames = EMPRESAS, key = "#id")})
     @Transactional
     public void inativarEmpresa(Long id, HistoricoSituacaoRequestDto motivo) {
         Empresa empresa = empresaRepository.findById(id)
@@ -153,11 +139,7 @@ public class EmpresaService {
         historicoSituacaoService.gravarHistoricoSituacao(motivo.motivo(), empresa, TipoSituacao.INATIVACAO);
     }
 
-    @Caching(evict = {
-            @CacheEvict(cacheNames = EMPRESAS, key = "#id"),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE, allEntries = true),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE_FILTER, allEntries = true)
-    })
+    @Caching(evict = {@CacheEvict(cacheNames = EMPRESAS, key = "#id")})
     @Transactional
     public void ativarEmpresa(Long id) {
         Empresa empresa = empresaRepository.findById(id)
@@ -166,11 +148,7 @@ public class EmpresaService {
         empresaRepository.save(empresa);
     }
 
-    @Caching(evict = {
-            @CacheEvict(cacheNames = EMPRESAS, key = "#id"),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE, allEntries = true),
-            @CacheEvict(cacheNames = EMPRESAS_PAGEABLE_FILTER, allEntries = true)
-    })
+    @Caching(evict = {@CacheEvict(cacheNames = EMPRESAS, key = "#id")})
     @Transactional
     public EmpresaAtualizarDto atualizarEmpresa(Long id, EmpresaAtualizarDto dto) {
         Empresa empresa = empresaRepository.findById(id)
@@ -184,12 +162,12 @@ public class EmpresaService {
         return empresaMapper.toUpdate(empresaSalva);
     }
 
-    public EmpresaRiscoResponseDto buscarQtEmpresasRisco() {
-        long qtBaixo = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_I_BAIXO);
-        long qtMedio = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_II_MEDIO);
-        long qtAlto = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO);
-        return new EmpresaRiscoResponseDto(qtBaixo, qtMedio, qtAlto);
-    }
+//    public EmpresaRiscoResponseDto buscarQtEmpresasRisco() {
+//        long qtBaixo = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_I_BAIXO);
+//        long qtMedio = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_II_MEDIO);
+//        long qtAlto = empresaRepository.countByCnaePrincipalRisco(RiscoSanitario.RISCO_III_ALTO);
+//        return new EmpresaRiscoResponseDto(qtBaixo, qtMedio, qtAlto);
+//    }
 
     public Page<EmpresaResponseDto> buscarEmpresasPorText(String termo, Pageable pageable) {
         log.info("Iniciando busca aproximada pelo termo: {}", termo);

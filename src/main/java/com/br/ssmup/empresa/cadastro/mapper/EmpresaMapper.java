@@ -11,12 +11,12 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring", uses = {EnderecoMapper.class, ResponsavelMapper.class})
 public interface EmpresaMapper {
 
-    @Mapping(target = "cnaePrincipal", ignore = true)
+//    @Mapping(target = "cnaePrincipal", ignore = true)
     @Mapping(source = "endereco", target = "endereco")
     @Mapping(source = "responsavel", target = "responsavel")
     Empresa toEntity(EmpresaCadastroDto dto);
 
-    @Mapping(source = "cnaePrincipal", target = "cnae")
+//    @Mapping(source = "cnaePrincipal", target = "cnae")
     EmpresaResponseDto toResponse(Empresa empresa);
 
     @AfterMapping
@@ -29,10 +29,10 @@ public interface EmpresaMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ativo", ignore = true)
-    @Mapping(target = "inspecao", ignore = true)
+//    @Mapping(target = "inspecao", ignore = true)
     @Mapping(target = "licensasSanitarias", ignore = true)
     @Mapping(target = "localizacao", ignore = true)
-    @Mapping(target = "cnaePrincipal", ignore = true)
+//    @Mapping(target = "cnaePrincipal", ignore = true)
     @Mapping(target = "endereco", ignore = true)
     @Mapping(target = "responsavel", ignore = true)
     void updateFromDto(EmpresaAtualizarDto dto, @MappingTarget Empresa empresa);
