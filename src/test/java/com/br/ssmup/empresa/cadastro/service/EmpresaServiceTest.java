@@ -226,4 +226,70 @@ class EmpresaServiceTest {
 //        assertThat(result.qtEmpresasRiscoMedio()).isEqualTo(3);
 //        assertThat(result.qtEmpresasRiscoAlto()).isEqualTo(2);
 //    }
+
+    @Test
+    @DisplayName("Deve listar cadastros mensais retornando 12 meses")
+    void deveListarCadastrosMensais() {
+        // Simula retorno do repositório: apenas meses 1 e 3 têm cadastros
+        List<Object[]> dados = List.of(
+                new Object[]{1, 5L},
+                new Object[]{3, 2L}
+        );
+
+        when(empresaRepository.contarCadastrosPorMes(2026)).thenReturn(dados);
+
+        List<EmpresaCadastroMensalDto> result = empresaService.listarCadastrosMensais(2026);
+
+        assertThat(result).hasSize(12);
+        assertThat(result.get(0).quantidade()).isEqualTo(5); // Jan
+        assertThat(result.get(1).quantidade()).isEqualTo(0); // Fev (sem dados)
+        assertThat(result.get(2).quantidade()).isEqualTo(2); // Mar
+        assertThat(result.get(3).quantidade()).isEqualTo(0); // Abr (sem dados)
+    }
+
+    @Test
+    @DisplayName("Deve normalizar email vazio para null ao salvar empresa")
+    void deveNormalizarEmailVazioParaNull() {
+        Empresa empresa = criarEmpresaFake();
+        empresa.setEmail("");
+        Responsavel resp = new Responsavel();
+        resp.setCpf("12345678901");
+        empresa.setResponsavel(resp);
+
+        EmpresaCadastroDto cadastroDto = mock(EmpresaCadastroDto.class);
+        EmpresaResponseDto responseDto = mock(EmpresaResponseDto.class);
+
+        when(empresaMapper.toEntity(cadastroDto)).thenReturn(empresa);
+        when(responsavelRepository.findByCpf("12345678901")).thenReturn(Optional.empty());
+        when(empresaRepository.save(any(Empresa.class))).thenReturn(empresa);
+        when(empresaMapper.toResponse(empresa)).thenReturn(responseDto);
+
+        empresaService.saveEmpresa(cadastroDto);
+
+        assertThat(empresa.getEmail()).isNull();
+        verify(empresaRepository).save(argThat(e -> e.getEmail() == null));
+    }
+
+    @Test
+    @DisplayName("Deve manter email válido ao salvar empresa")
+    void deveManterEmailValidoAoSalvar() {
+        Empresa empresa = criarEmpresaFake();
+        empresa.setEmail("test@example.com");
+        Responsavel resp = new Responsavel();
+        resp.setCpf("12345678901");
+        empresa.setResponsavel(resp);
+
+        EmpresaCadastroDto cadastroDto = mock(EmpresaCadastroDto.class);
+        EmpresaResponseDto responseDto = mock(EmpresaResponseDto.class);
+
+        when(empresaMapper.toEntity(cadastroDto)).thenReturn(empresa);
+        when(responsavelRepository.findByCpf("12345678901")).thenReturn(Optional.empty());
+        when(empresaRepository.save(any(Empresa.class))).thenReturn(empresa);
+        when(empresaMapper.toResponse(empresa)).thenReturn(responseDto);
+
+        empresaService.saveEmpresa(cadastroDto);
+
+        assertThat(empresa.getEmail()).isEqualTo("test@example.com");
+    }
 }
+

@@ -1,7 +1,9 @@
 package com.br.ssmup.empresa.licensa.controller;
 
+import com.br.ssmup.empresa.licensa.dto.LicensaSanitariaCadastroDto;
 import com.br.ssmup.empresa.licensa.dto.LicensaSanitariaResponseDto;
 import com.br.ssmup.empresa.licensa.service.LicensaSanitariaService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,12 +36,28 @@ public class LicensaSanitariaController {
         return ResponseEntity.ok(licensaSanitariaService.buscarLicensasSanitariaPagable(pageable));
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<LicensaSanitariaResponseDto> getLicensaById(@PathVariable Long id) {
+        return ResponseEntity.ok(licensaSanitariaService.buscarLicencaSanitariaById(id));
+    }
+
     @PostMapping("/emitir/{idEmpresa}")
-    public ResponseEntity<?> emitirLicensa(@PathVariable Long idEmpresa) {
+    public ResponseEntity<?> emitirLicensa(
+            @PathVariable Long idEmpresa,
+            @RequestBody @Valid LicensaSanitariaCadastroDto payload
+    ) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=alvara_sanitario.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(licensaSanitariaService.emitirAlvara(idEmpresa));
+                .body(licensaSanitariaService.emitirAlvara(idEmpresa, payload.numControle()));
+    }
+
+    @GetMapping("/imprimir/{idEmpresa}")
+    public ResponseEntity<?> imprimirLicensa(@PathVariable Long idEmpresa) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=alvara_sanitario.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(licensaSanitariaService.imprimirLicensa(idEmpresa));
     }
 
 }

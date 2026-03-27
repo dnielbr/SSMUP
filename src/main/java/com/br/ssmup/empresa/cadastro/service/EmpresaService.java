@@ -52,6 +52,15 @@ public class EmpresaService {
     public EmpresaResponseDto saveEmpresa(EmpresaCadastroDto dto) {
         Empresa empresa = empresaMapper.toEntity(dto);
 
+        // Normalizar email vazio para null (evita conflito de unique constraint)
+        if (empresa.getEmail() != null && empresa.getEmail().isBlank()) {
+            empresa.setEmail(null);
+        }
+
+        if (empresa.getInscricaoEstadual() != null && empresa.getInscricaoEstadual().isBlank()) {
+            empresa.setInscricaoEstadual(null);
+        }
+
 //        if (dto.cnaeCodigo() != null) {
 //            Cnae cnae = cnaeRepository.findByCodigo(dto.cnaeCodigo())
 //                    .orElseThrow(() -> new RuntimeException("CNAE não encontrado: " + dto.cnaeCodigo()));
@@ -198,5 +207,19 @@ public class EmpresaService {
                 .map(emp -> new EmpresaSolrDto(emp.getId().toString(), emp.getRazaoSocial(), emp.getNomeFantasia()))
                 .toList();
         empresaSolrService.sincronizarEmLote(documentos);
+    }
+
+    public List<EmpresaCadastroMensalDto> listarCadastrosMensais(int ano) {
+        List<Object[]> resultados = empresaRepository.contarCadastrosPorMes(ano);
+
+        Map<Integer, Long> mapaMensal = resultados.stream()
+                .collect(Collectors.toMap(
+                        r -> ((Number) r[0]).intValue(),
+                        r -> ((Number) r[1]).longValue()
+                ));
+
+        return java.util.stream.IntStream.rangeClosed(1, 12)
+                .mapToObj(mes -> new EmpresaCadastroMensalDto(mes, mapaMensal.getOrDefault(mes, 0L)))
+                .toList();
     }
 }

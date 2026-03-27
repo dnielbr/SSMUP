@@ -194,4 +194,13 @@ public class EmpresaController {
         empresaService.sincronizarBaseComSolr();
         return ResponseEntity.ok("Sincronização iniciada com sucesso! Verifique os logs.");
     }
+
+    @GetMapping("cadastros-mensais")
+    @Operation(summary = "Cadastros Mensais", description = "Retorna a quantidade de empresas cadastradas por mês em um determinado ano.")
+    public ResponseEntity<List<EmpresaCadastroMensalDto>> getCadastrosMensais(
+            @RequestParam(value = "ano", required = false) Integer ano
+    ) {
+        int anoConsulta = (ano != null) ? ano : java.time.LocalDate.now().getYear();
+        return ResponseEntity.ok(empresaService.listarCadastrosMensais(anoConsulta));
+    }
 }
