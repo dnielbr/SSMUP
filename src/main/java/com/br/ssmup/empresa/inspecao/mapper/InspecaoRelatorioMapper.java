@@ -31,7 +31,9 @@ public interface InspecaoRelatorioMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "empresa", ignore = true)
     @Mapping(target = "usuarios", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updateAt", ignore = true)
+    @Mapping(target = "criadoEm", ignore = true)
+    @Mapping(target = "atualizadoEm", ignore = true)
+    @Mapping(target = "criadoPor", ignore = true)
+    @Mapping(target = "atualizadoPor", ignore = true)
     void updateFromDto(InspecaoRelatorioUpdateDto dto, @MappingTarget InspecaoRelatorio entity);
 }

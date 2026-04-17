@@ -1,5 +1,6 @@
 package com.br.ssmup.empresa.historico.entity;
 import com.br.ssmup.auth.usuario.entity.Usuario;
+import com.br.ssmup.core.audit.Auditable;
 import com.br.ssmup.empresa.cadastro.entity.Empresa;
 
 import com.br.ssmup.empresa.historico.enums.TipoSituacao;
@@ -8,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HistoricoSituacao {
+public class HistoricoSituacao extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,8 +30,15 @@ public class HistoricoSituacao {
     @Column(nullable = false)
     private TipoSituacao tipoSituacao;
 
-    @CreationTimestamp
+    @Column(name = "data", updatable = false)
     private LocalDateTime data;
+
+    @PrePersist
+    public void prePersistData() {
+        if (data == null) {
+            data = LocalDateTime.now();
+        }
+    }
 
     @ManyToOne()
     @JoinColumn(name = "id_empresa", nullable = false)

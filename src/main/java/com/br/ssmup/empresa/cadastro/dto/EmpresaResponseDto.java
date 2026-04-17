@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record EmpresaResponseDto(
         Long id,
@@ -22,7 +23,11 @@ public record EmpresaResponseDto(
         boolean ativo,
 //        boolean inspecao,
         EnderecoResponseDto endereco,
-        ResponsavelResponseDto responsavel
+        ResponsavelResponseDto responsavel,
+        LocalDateTime criadoEm,
+        LocalDateTime atualizadoEm,
+        String criadoPor,
+        String atualizadoPor
 //        CnaeResponseDto cnae
 ) implements Serializable {
 }

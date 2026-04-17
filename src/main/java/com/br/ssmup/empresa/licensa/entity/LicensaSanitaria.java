@@ -1,5 +1,7 @@
 package com.br.ssmup.empresa.licensa.entity;
+import com.br.ssmup.core.audit.Auditable;
 import com.br.ssmup.empresa.cadastro.entity.Empresa;
+import com.br.ssmup.empresa.licensa.enums.StatusLicensa;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LicensaSanitaria {
+public class LicensaSanitaria extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,8 +36,15 @@ public class LicensaSanitaria {
     @Column(name = "data_validade", nullable = false)
     private LocalDate dataValidade;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean status;
+    private StatusLicensa status;
+
+    @Column(name = "motivo_cancelamento")
+    private String motivoCancelamento;
+
+    @Column(name = "licensa_substituta_id")
+    private Long licensaSubstitutaId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_empresa")
@@ -46,13 +55,15 @@ public class LicensaSanitaria {
     public void prePersist(){
         this.dataEmissao = LocalDateTime.now();
         this.dataValidade = LocalDate.now().plusYears(1);
-        this.status = true;
+        if (this.status == null) {
+            this.status = StatusLicensa.ATIVA;
+        }
     }
 
     @PreUpdate
     public void preUpdate(){
-        if(LocalDate.now().isAfter(this.dataValidade)){
-            this.status = false;
+        if(this.status == StatusLicensa.ATIVA && LocalDate.now().isAfter(this.dataValidade)){
+            this.status = StatusLicensa.VENCIDA;
         }
     }
 }

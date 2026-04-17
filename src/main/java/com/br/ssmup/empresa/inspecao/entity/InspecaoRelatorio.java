@@ -1,5 +1,6 @@
 package com.br.ssmup.empresa.inspecao.entity;
 import com.br.ssmup.auth.usuario.entity.Usuario;
+import com.br.ssmup.core.audit.Auditable;
 import com.br.ssmup.empresa.cadastro.entity.Empresa;
 
 import com.br.ssmup.empresa.inspecao.enums.StatusInspecao;
@@ -9,11 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +21,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InspecaoRelatorio {
+public class InspecaoRelatorio extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,11 +54,4 @@ public class InspecaoRelatorio {
     )
     private List<Usuario> usuarios = new ArrayList<>();
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updateAt;
-
 }
-

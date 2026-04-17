@@ -1,4 +1,5 @@
 package com.br.ssmup.empresa.responsavel.entity;
+import com.br.ssmup.core.audit.Auditable;
 import com.br.ssmup.empresa.cadastro.entity.Empresa;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -17,7 +18,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Responsavel {
+public class Responsavel extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

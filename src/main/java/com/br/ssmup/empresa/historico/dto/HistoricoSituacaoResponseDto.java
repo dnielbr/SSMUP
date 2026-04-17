@@ -10,6 +10,10 @@ public record HistoricoSituacaoResponseDto(
         String motivo,
         TipoSituacao tipoSituacao,
         LocalDateTime data,
-        String usuarioResponsavel
+        String usuarioResponsavel,
+        LocalDateTime criadoEm,
+        LocalDateTime atualizadoEm,
+        String criadoPor,
+        String atualizadoPor
 ) implements Serializable {
 }

@@ -1,4 +1,5 @@
 package com.br.ssmup.empresa.endereco.entity;
+import com.br.ssmup.core.audit.Auditable;
 import com.br.ssmup.empresa.cadastro.entity.Empresa;
 
 import com.br.ssmup.empresa.endereco.enums.UnidadeFederativa;
@@ -15,7 +16,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Endereco {
+public class Endereco extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

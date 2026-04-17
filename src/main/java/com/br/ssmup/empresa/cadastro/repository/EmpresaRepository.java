@@ -15,10 +15,10 @@ public interface EmpresaRepository extends JpaRepository<Empresa, Long>, JpaSpec
 //    long countByCnaePrincipalRisco(RiscoSanitario risco);
     List<Empresa> findByAtivo(boolean ativo);
 
-    @Query("SELECT MONTH(e.createdAt) AS mes, COUNT(e) AS quantidade " +
+    @Query("SELECT MONTH(e.criadoEm) AS mes, COUNT(e) AS quantidade " +
            "FROM Empresa e " +
-           "WHERE YEAR(e.createdAt) = :ano " +
-           "GROUP BY MONTH(e.createdAt) " +
-           "ORDER BY mes")
+           "WHERE YEAR(e.criadoEm) = :ano " +
+           "GROUP BY MONTH(e.criadoEm) " +
+           "ORDER BY MONTH(e.criadoEm)")
     List<Object[]> contarCadastrosPorMes(@Param("ano") int ano);
 }

@@ -17,7 +17,9 @@ public record InspecaoRelatorioResponseDto(
         StatusInspecao statusInspecao,
         Long empresaId,
         List<Long> usuariosId,
-        LocalDateTime createdAt,
-        LocalDateTime updateAt
+        LocalDateTime criadoEm,
+        LocalDateTime atualizadoEm,
+        String criadoPor,
+        String atualizadoPor
 ) implements Serializable {
 }

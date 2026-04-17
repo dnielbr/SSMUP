@@ -1,4 +1,5 @@
 package com.br.ssmup.empresa.cadastro.entity;
+import com.br.ssmup.core.audit.Auditable;
 import com.br.ssmup.empresa.cnae.entity.Cnae;
 import com.br.ssmup.empresa.licensa.entity.LicensaSanitaria;
 import com.br.ssmup.empresa.endereco.entity.Endereco;
@@ -13,11 +14,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +25,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Empresa {
+public class Empresa extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,20 +56,9 @@ public class Empresa {
     @Column(nullable = false)
     private boolean ativo = true;
 
-//    @Column(nullable = false)
-//    private boolean inspecao = false;
-
     @Email
     @Column(unique = true)
     private String email;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_responsavel", nullable = false)
@@ -89,10 +76,6 @@ public class Empresa {
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "empresa", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Localizacao localizacao;
-
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "cnae_principal_codigo")
-//    private Cnae cnaePrincipal;
 
     public void adicionarEndereco(Endereco endereco) {
         this.endereco = endereco;

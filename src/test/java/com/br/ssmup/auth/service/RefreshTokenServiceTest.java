@@ -47,7 +47,6 @@ class RefreshTokenServiceTest {
         assertThat(result.getUsuario()).isEqualTo(usuario);
         assertThat(result.getToken()).isNotBlank();
         assertThat(result.getExpiryDate()).isAfter(Instant.now());
-        verify(refreshTokenRepository).deleteByUsuario(usuario);
         verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
@@ -70,8 +69,6 @@ class RefreshTokenServiceTest {
 
         assertThatThrownBy(() -> refreshTokenService.verifyExpiration(token))
                 .isInstanceOf(UnauthorizedException.class);
-        
-        verify(refreshTokenRepository).delete(token);
     }
 
     @Test

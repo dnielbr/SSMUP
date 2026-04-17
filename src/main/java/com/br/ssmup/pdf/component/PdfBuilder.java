@@ -57,7 +57,7 @@ public class PdfBuilder {
                 PREFEITURA MUNICIPAL DE TACIMA/PB
                 SECRETARIA MUNICIPAL DE SAÚDE
                 COORDENAÇÃO DE VIGILÂNCIA SANITÁRIA
-                
+
                 """;
 
         return new Paragraph(text)
@@ -67,23 +67,34 @@ public class PdfBuilder {
                 .setMarginTop(-35f);
     }
 
-    public Paragraph buildTitle(PdfFont boldFont) {
-        return new Paragraph("LICENCIAMENTO SANITÁRIO\n\n")
-                .setFont(boldFont)
-                .setFontSize(FONT_SIZE_TITLE)
-                .setTextAlignment(TextAlignment.CENTER);
-    }
-
     public Paragraph buildBody(EmpresaResponseDto empresa, LicensaSanitariaResponseDto licensa, PdfFont font) {
 
         StringBuilder text = new StringBuilder();
-        text.append("Parecer técnico nº ").append(licensa.numControle()).append("\n\n");
-        text.append("A coordenação de vigilância sanitária Municipal de Tacima/PB, baseado na Resolução RDC nº 275/2002 da ANVISA, ");
-        text.append("autoriza o licenciamento sanitário no estabelecimento comercial ").append(empresa.atividadeFirma()).append(". ");
-        text.append("Nome fantasia: ").append(empresa.nomeFantasia()).append(", CNPJ: ").append(empresa.cnpj()).append(", ");
-        text.append("Inscrição estadual: ").append(empresa.inscricaoEstadual()).append(", ");
+
+        text.append("PARECE TÉCNICO Nº ").append(licensa.numControle()).append("\n\n");
+        text.append("A coordenação de vigilância sanitária municipal de Tacima/PB, baseado na Lei nº 129/2009, ");
+        text.append("autoriza o licenciamento sanitário no estabelecimento comercial ").append(empresa.atividadeFirma())
+                .append(". ");
+        text.append("Nome fantasia: ").append(empresa.nomeFantasia()).append(", CNPJ: ").append(empresa.cnpj())
+                .append(", ");
+        if (empresa.inscricaoEstadual() != null && !empresa.inscricaoEstadual().isBlank()) {
+            text.append("Inscrição estadual: ").append(empresa.inscricaoEstadual()).append(", ");
+        }
+        if (empresa.endereco().rua() != null && !empresa.endereco().rua().isBlank()) {
+            text.append("logradouro rua ").append(empresa.endereco().rua()).append(", ");
+        }
+        if (empresa.endereco().numero() != null && !empresa.endereco().numero().isBlank()) {
+            text.append(empresa.endereco().numero()).append(", ");
+        }
+        if (empresa.endereco().bairro() != null && !empresa.endereco().bairro().isBlank()) {
+            text.append(empresa.endereco().bairro()).append(", ");
+
+        }
+        text.append(empresa.endereco().municipio()).append("/").append(empresa.endereco().uf())
+                .append(", ");
         text.append("Proprietário responsável: ").append(empresa.responsavel().nome()).append(", ");
-        text.append("portador do RG: ").append(empresa.responsavel().rg()).append(" e CPF: ").append(empresa.responsavel().cpf()).append(".");
+        text.append("portador do RG: ").append(empresa.responsavel().rg()).append(" e CPF: ")
+                .append(empresa.responsavel().cpf()).append(".");
 
         return new Paragraph(text.toString())
                 .setFont(font)
@@ -92,18 +103,12 @@ public class PdfBuilder {
     }
 
     private String formatDate(LocalDateTime dateEmissao) {
-        DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("pt", "BR"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("pt", "BR"));
         return dateEmissao.format(formatter);
     }
 
     public IBlockElement buildFooter(LocalDateTime dateEmissao, PdfFont font, PdfFont boldFont) {
         String dataFormatada = formatDate(dateEmissao);
-
-        Paragraph date = new Paragraph("Tacima-PB, " + dataFormatada)
-                .setFont(font)
-                .setFontSize(FONT_SIZE_SMALL)
-                .setTextAlignment(TextAlignment.RIGHT);
 
         Paragraph obs = new Paragraph()
                 .add(new Text("OBS: ").setFont(boldFont))
@@ -117,9 +122,9 @@ public class PdfBuilder {
         tabelaAssinatura.setWidth(250);
 
         Paragraph textoAssinatura = new Paragraph()
-                .add("José Henrique Barbosa da Costa\n")
+                .add("José Humberto Barbosa da Costa\n")
                 .add("Coordenador de vigilância sanitária\n")
-                .add("Mat.12224-1")
+                .add("Mat.1224-1")
                 .setFont(font)
                 .setFontSize(FONT_SIZE_SMALL)
                 .setTextAlignment(TextAlignment.CENTER);
@@ -129,10 +134,15 @@ public class PdfBuilder {
         celulaAssinatura.setBorderTop(new SolidBorder(1f));
         tabelaAssinatura.addCell(celulaAssinatura);
 
+        Paragraph date = new Paragraph("Tacima-PB, " + dataFormatada)
+                .setFont(font)
+                .setFontSize(FONT_SIZE_SMALL)
+                .setTextAlignment(TextAlignment.RIGHT);
+
         Div footer = new Div();
-        footer.add(date);
         footer.add(obs);
         footer.add(tabelaAssinatura);
+        footer.add(date);
 
         return footer;
     }
